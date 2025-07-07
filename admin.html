@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Master - Admin Dashboard</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <img src="assets/images/ui/logo.png" alt="Slot Master Logo">
+                <h2>Admin Panel</h2>
+            </div>
+            
+            <nav class="menu">
+                <ul>
+                    <li class="active" data-section="dashboard">
+                        <span class="icon">📊</span>
+                        <span>Dashboard</span>
+                    </li>
+                    <li data-section="game-settings">
+                        <span class="icon">⚙️</span>
+                        <span>Pengaturan Game</span>
+                    </li>
+                    <li data-section="win-settings">
+                        <span class="icon">🎰</span>
+                        <span>Pengaturan Kemenangan</span>
+                    </li>
+                    <li data-section="users">
+                        <span class="icon">👥</span>
+                        <span>Manajemen User</span>
+                    </li>
+                    <li data-section="logs">
+                        <span class="icon">📝</span>
+                        <span>Log Permainan</span>
+                    </li>
+                    <li id="logout-btn">
+                        <span class="icon">🚪</span>
+                        <span>Keluar</span>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <header>
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-info">
+                    <span id="admin-name">Admin</span>
+                </div>
+            </header>
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Pemain</div>
+                        <div class="stat-value">124</div>
+                        <div class="stat-change positive">+12% minggu ini</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">Total Putaran</div>
+                        <div class="stat-value">15,482</div>
+                        <div class="stat-change positive">+8% minggu ini</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">House Edge</div>
+                        <div class="stat-value">Rp 250,000,000</div>
+                        <div class="stat-change positive">+5% minggu ini</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-title">RTP Keseluruhan</div>
+                        <div class="stat-value">95.4%</div>
+                        <div class="stat-change negative">-0.2% minggu ini</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-card">
+                        <h3>Aktivitas Permainan (7 Hari Terakhir)</h3>
+                        <div class="chart" id="activity-chart">
+                            <!-- Chart will be rendered here -->
+                            <div class="chart-placeholder">Grafik Aktivitas</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>Distribusi Kemenangan</h3>
+                        <div class="chart" id="wins-distribution-chart">
+                            <!-- Chart will be rendered here -->
+                            <div class="chart-placeholder">Grafik Distribusi</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recent-activity">
+                    <h3>Aktivitas Terbaru</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>User</th>
+                                <th>Aktivitas</th>
+                                <th>Taruhan</th>
+                                <th>Hasil</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-activity-table">
+                            <tr>
+                                <td>08/05/2025 10:32</td>
+                                <td>player123</td>
+                                <td>Spin</td>
+                                <td>Rp 100,000</td>
+                                <td class="win">+Rp 250,000</td>
+                            </tr>
+                            <tr>
+                                <td>08/05/2025 10:31</td>
+                                <td>gambler777</td>
+                                <td>Spin</td>
+                                <td>Rp 50,000</td>
+                                <td class="loss">-Rp 50,000</td>
+                            </tr>
+                            <tr>
+                                <td>08/05/2025 10:30</td>
+                                <td>luckystar</td>
+                                <td>Spin</td>
+                                <td>Rp 25,000</td>
+                                <td class="win">+Rp 75,000</td>
+                            </tr>
+                            <tr>
+                                <td>08/05/2025 10:28</td>
+                                <td>highroller</td>
+                                <td>Spin</td>
+                                <td>Rp 500,000</td>
+                                <td class="loss">-Rp 500,000</td>
+                            </tr>
+                            <tr>
+                                <td>08/05/2025 10:25</td>
+                                <td>newplayer</td>
+                                <td>Deposit</td>
+                                <td>-</td>
+                                <td>+Rp 1,000,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- Game Settings Section -->
+            <section id="game-settings" class="content-section">
+                <div class="settings-card">
+                    <h3>Pengaturan Umum</h3>
+                    <div class="settings-form">
+                        <div class="form-group">
+                            <label for="min-bet">Taruhan Minimum</label>
+                            <input type="number" id="min-bet" value="10000">
+                        </div>
+                        <div class="form-group">
+                            <label for="max-bet">Taruhan Maksimum</label>
+                            <input type="number" id="max-bet" value="1000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="max-lines">Jumlah Garis Maksimum</label>
+                            <input type="number" id="max-lines" value="20">
+                        </div>
+                        <div class="form-group">
+                            <label for="default-rtp">Default RTP</label>
+                            <input type="number" id="default-rtp" value="95.5" step="0.1">
+                            <span class="unit">%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>Pengaturan Simbol</h3>
+                    <table class="symbols-table">
+                        <thead>
+                            <tr>
+                                <th>Simbol</th>
+                                <th>Nama</th>
+                                <th>Nilai (3)</th>
+                                <th>Nilai (4)</th>
+                                <th>Nilai (5)</th>
+                                <th>Frekuensi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="symbols-table-body">
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol1.png')"></div></td>
+                                <td><input type="text" value="Wild"></td>
+                                <td><input type="number" value="500"></td>
+                                <td><input type="number" value="1000"></td>
+                                <td><input type="number" value="5000"></td>
+                                <td><input type="number" value="5" min="1" max="100"></td>
+                            </tr>
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol2.png')"></div></td>
+                                <td><input type="text" value="Scatter"></td>
+                                <td><input type="number" value="200"></td>
+                                <td><input type="number" value="500"></td>
+                                <td><input type="number" value="2500"></td>
+                                <td><input type="number" value="8" min="1" max="100"></td>
+                            </tr>
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol3.png')"></div></td>
+                                <td><input type="text" value="Diamond"></td>
+                                <td><input type="number" value="100"></td>
+                                <td><input type="number" value="300"></td>
+                                <td><input type="number" value="1500"></td>
+                                <td><input type="number" value="12" min="1" max="100"></td>
+                            </tr>
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol4.png')"></div></td>
+                                <td><input type="text" value="Bell"></td>
+                                <td><input type="number" value="50"></td>
+                                <td><input type="number" value="150"></td>
+                                <td><input type="number" value="750"></td>
+                                <td><input type="number" value="20" min="1" max="100"></td>
+                            </tr>
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol5.png')"></div></td>
+                                <td><input type="text" value="Cherry"></td>
+                                <td><input type="number" value="30"></td>
+                                <td><input type="number" value="100"></td>
+                                <td><input type="number" value="500"></td>
+                                <td><input type="number" value="25" min="1" max="100"></td>
+                            </tr>
+                            <tr>
+                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol6.png')"></div></td>
+                                <td><input type="text" value="Seven"></td>
+                                <td><input type="number" value="20"></td>
+                                <td><input type="number" value="80"></td>
+                                <td><input type="number" value="400"></td>
+                                <td><input type="number" value="30" min="1" max="100"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="form-buttons">
+                    <button id="save-game-settings" class="btn primary-btn">Simpan Pengaturan</button>
+                    <button id="reset-game-settings" class="btn secondary-btn">Reset</button>
+                </div>
+            </section>
+            
+            <!-- Win Settings Section -->
+            <section id="win-settings" class="content-section">
+                <div class="settings-card">
+                    <h3>Kontrol Kemenangan</h3>
+                    <div class="win-control-form">
+                        <div class="form-group">
+                            <label for="force-win-enabled">Aktifkan Paksa Kemenangan</label>
+                            <label class="switch">
+                                <input type="checkbox" id="force-win-enabled">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="win-frequency">Frekuensi Kemenangan</label>
+                            <input type="range" id="win-frequency" min="1" max="100" value="30">
+                            <span id="win-frequency-value">30%</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="force-win-amount">Jumlah Kemenangan Paksa</label>
+                            <select id="force-win-amount">
+                                <option value="small">Kecil (1-2x Taruhan)</option>
+                                <option value="medium" selected>Sedang (3-5x Taruhan)</option>
+                                <option value="large">Besar (6-10x Taruhan)</option>
+                                <option value="jackpot">Jackpot (20x+ Taruhan)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="force-win-spins">Paksa Menang Setelah Putaran Ke-</label>
+                            <input type="number" id="force-win-spins" min="1" value="10">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>Pengaturan RTP per Pelanggan</h3>
+                    <div class="user-rtp-controls">
+                        <div class="form-group search-group">
+                            <label for="user-search">Cari Pengguna</label>
+                            <input type="text" id="user-search" placeholder="Username...">
+                            <button id="search-user-btn" class="btn">Cari</button>
+                        </div>
+                        
+                        <table class="user-rtp-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>RTP Saat Ini</th>
+                                    <th>RTP Kustom</th>
+                                    <th>Putaran Berikutnya</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-rtp-table-body">
+                                <tr>
+                                    <td>player123</td>
+                                    <td>92.5%</td>
+                                    <td>
+                                        <input type="number" value="92.5" min="1" max="99" step="0.1">
+                                        <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option value="">Tidak Ada</option>
+                                            <option value="win-small">Menang Kecil</option>
+                                            <option value="win-medium">Menang Sedang</option>
+                                            <option value="win-large">Menang Besar</option>
+                                            <option value="jackpot">Jackpot</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button class="btn small-btn">Simpan</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>gambler777</td>
+                                    <td>98.2%</td>
+                                    <td>
+                                        <input type="number" value="98.2" min="1" max="99" step="0.1">
+                                        <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option value="">Tidak Ada</option>
+                                            <option value="win-small">Menang Kecil</option>
+                                            <option value="win-medium" selected>Menang Sedang</option>
+                                            <option value="win-large">Menang Besar</option>
+                                            <option value="jackpot">Jackpot</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button class="btn small-btn">Simpan</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>luckystar</td>
+                                    <td>95.4%</td>
+                                    <td>
+                                        <input type="number" value="95.4" min="1" max="99" step="0.1">
+                                        <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <select>
+                                            <option value="">Tidak Ada</option>
+                                            <option value="win-small">Menang Kecil</option>
+                                            <option value="win-medium">Menang Sedang</option>
+                                            <option value="win-large">Menang Besar</option>
+                                            <option value="jackpot">Jackpot</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <button class="btn small-btn">Simpan</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="settings-card">
+                    <h3>Statistik Kemenangan</h3>
+                    <div class="win-stats">
+                        <div class="win-stat-chart">
+                            <h4>Persentase Kemenangan per Simbol</h4>
+                            <div class="chart" id="symbol-win-chart">
+                                <!-- Chart will be rendered here -->
+                                <div class="chart-placeholder">Grafik Simbol</div>
+                            </div>
+                        </div>
+                        
+                        <div class="win-stat-chart">
+                            <h4>Persentase Kemenangan per Putaran</h4>
+                            <div class="chart" id="spin-win-chart">
+                                <!-- Chart will be rendered here -->
+                                <div class="chart-placeholder">Grafik Putaran</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Users Management Section -->
+            <section id="users" class="content-section">
+                <div class="action-bar">
+                    <div class="search-container">
+                        <input type="text" id="users-search" placeholder="Cari pengguna...">
+                        <button id="search-users-btn" class="btn">Cari</button>
+                    </div>
+                    <button id="add-user-btn" class="btn primary-btn">Tambah Pengguna</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Saldo</th>
+                                <th>Total Putaran</th>
+                                <th>Tanggal Bergabung</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <tr>
+                                <td>1</td>
+                                <td>player123</td>
+                                <td>player123@example.com</td>
+                                <td>Rp 2,500,000</td>
+                                <td>354</td>
+                                <td>01/02/2025</td>
+                                <td><span class="status active">Aktif</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>gambler777</td>
+                                <td>gambler777@example.com</td>
+                                <td>Rp 150,000</td>
+                                <td>129</td>
+                                <td>15/03/2025</td>
+                                <td><span class="status active">Aktif</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>luckystar</td>
+                                <td>luckystar@example.com</td>
+                                <td>Rp 8,750,000</td>
+                                <td>521</td>
+                                <td>22/01/2025</td>
+                                <td><span class="status active">Aktif</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>highroller</td>
+                                <td>highroller@example.com</td>
+                                <td>Rp 42,100,000</td>
+                                <td>865</td>
+                                <td>05/02/2025</td>
+                                <td><span class="status active">Aktif</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>newplayer</td>
+                                <td>newplayer@example.com</td>
+                                <td>Rp 1,000,000</td>
+                                <td>0</td>
+                                <td>08/05/2025</td>
+                                <td><span class="status active">Aktif</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>6</td>
+                                <td>blocked_user</td>
+                                <td>blocked@example.com</td>
+                                <td>Rp 0</td>
+                                <td>42</td>
+                                <td>10/03/2025</td>
+                                <td><span class="status inactive">Diblokir</span></td>
+                                <td>
+                                    <button class="btn small-btn edit-btn">Edit</button>
+                                    <button class="btn small-btn delete-btn">Hapus</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Add/Edit User Modal -->
+                <div id="user-modal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2 id="user-modal-title">Tambah Pengguna</h2>
+                        <form id="user-form">
+                            <div class="form-group">
+                                <label for="user-username">Username</label>
+                                <input type="text" id="user-username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-email">Email</label>
+                                <input type="email" id="user-email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-password">Password</label>
+                                <input type="password" id="user-password">
+                                <small>Kosongkan jika tidak ingin mengubah password</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-balance">Saldo</label>
+                                <input type="number" id="user-balance" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label for="user-status">Status</label>
+                                <select id="user-status">
+                                    <option value="active">Aktif</option>
+                                    <option value="inactive">Diblokir</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="user-role">Peran</label>
+                                <select id="user-role">
+                                    <option value="user">Pengguna</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn primary-btn">Simpan</button>
+                                <button type="button" class="btn secondary-btn" id="cancel-user-edit">Batal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Game Logs Section -->
+            <section id="logs" class="content-section">
+                <div class="action-bar">
+                    <div class="filter-container">
+                        <select id="log-type-filter">
+                            <option value="all">Semua Aktivitas</option>
+                            <option value="spin">Hanya Spin</option>
+                            <option value="win">Hanya Kemenangan</option>
+                            <option value="deposit">Hanya Deposit</option>
+                            <option value="withdraw">Hanya Withdraw</option>
+                        </select>
+                        <input type="date" id="log-date-filter" value="2025-05-08">
+                        <input type="text" id="log-user-filter" placeholder="Username...">
+                        <button id="filter-logs-btn" class="btn">Filter</button>
+                    </div>
+                    <button id="export-logs-btn" class="btn secondary-btn">Export CSV</button>
+                </div>
+                
+                <div class="table-container">
+                    <table class="logs-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tanggal & Waktu</th>
+                                <th>Username</th>
+                                <th>Aktivitas</th>
+                                <th>Taruhan</th>
+                                <th>Hasil</th>
+                                <th>Saldo Sebelum</th>
+                                <th>Saldo Sesudah</th>
+                                <th>Kombinasi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body">
+                            <tr>
+                                <td>12345</td>
+                                <td>08/05/2025 10:32:45</td>
+                                <td>player123</td>
+                                <td>Spin</td>
+                                <td>Rp 100,000</td>
+                                <td class="win">+Rp 250,000</td>
+                                <td>Rp 2,350,000</td>
+                                <td>Rp 2,500,000</td>
+                                <td>Wild-Wild-Diamond</td>
+                            </tr>
+                            <tr>
+                                <td>12344</td>
+                                <td>08/05/2025 10:31:30</td>
+                                <td>gambler777</td>
+                                <td>Spin</td>
+                                <td>Rp 50,000</td>
+                                <td class="loss">-Rp 50,000</td>
+                                <td>Rp 200,000</td>
+                                <td>Rp 150,000</td>
+                                <td>Cherry-Bell-Seven</td>
+                            </tr>
+                            <tr>
+                                <td>12343</td>
+                                <td>08/05/2025 10:30:15</td>
+                                <td>luckystar</td>
+                                <td>Spin</td>
+                                <td>Rp 25,000</td>
+                                <td class="win">+Rp 75,000</td>
+                                <td>Rp 8,700,000</td>
+                                <td>Rp 8,750,000</td>
+                                <td>Diamond-Diamond-Diamond</td>
+                            </tr>
+                            <tr>
+                                <td>12342</td>
+                                <td>08/05/2025 10:28:42</td>
+                                <td>highroller</td>
+                                <td>Spin</td>
+                                <td>Rp 500,000</td>
+                                <td class="loss">-Rp 500,000</td>
+                                <td>Rp 42,600,000</td>
+                                <td>Rp 42,100,000</td>
+                                <td>Cherry-Seven-Bell</td>
+                            </tr>
+                            <tr>
+                                <td>12341</td>
+                                <td>08/05/2025 10:25:10</td>
+                                <td>newplayer</td>
+                                <td>Deposit</td>
+                                <td>-</td>
+                                <td>+Rp 1,000,000</td>
+                                <td>Rp 0</td>
+                                <td>Rp 1,000,000</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>12340</td>
+                                <td>08/05/2025 10:20:05</td>
+                                <td>luckystar</td>
+                                <td>Spin</td>
+                                <td>Rp 100,000</td>
+                                <td class="win">+Rp 8,500,000</td>
+                                <td>Rp 300,000</td>
+                                <td>Rp 8,700,000</td>
+                                <td>Wild-Wild-Wild</td>
+                            </tr>
+                            <tr>
+                                <td>12339</td>
+                                <td>08/05/2025 10:18:30</td>
+                                <td>gambler777</td>
+                                <td>Deposit</td>
+                                <td>-</td>
+                                <td>+Rp 200,000</td>
+                                <td>Rp 0</td>
+                                <td>Rp 200,000</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>12338</td>
+                                <td>08/05/2025 10:15:20</td>
+                                <td>highroller</td>
+                                <td>Spin</td>
+                                <td>Rp 1,000,000</td>
+                                <td class="win">+Rp 1,500,000</td>
+                                <td>Rp 42,100,000</td>
+                                <td>Rp 42,600,000</td>
+                                <td>Diamond-Diamond-Bell</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>&laquo;</button>
+                    <button class="pagination-btn active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">&raquo;</button>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/ui/AdminUI.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

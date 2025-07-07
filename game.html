@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Master - Game</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="assets/images/ui/logo.png" alt="Slot Master Logo" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%22120%22 height%3D%2260%22%3E%3Crect width%3D%22120%22 height%3D%2260%22 fill%3D%22%23FFD700%22 rx%3D%228%22%2F%3E%3Ctext x%3D%2260%22 y%3D%2235%22 font-family%3D%22Arial%20Black%22 font-size%3D%2216%22 fill%3D%22%23000%22 text-anchor%3D%22middle%22 dominant-baseline%3D%22middle%22%3ESlot Master%3C%2Ftext%3E%3C%2Fsvg%3E'">
+            </div>
+            <div class="user-info">
+                <div class="balance">
+                    <span>💰 Saldo:</span>
+                    <span id="user-balance">Rp 10.000.000</span>
+                </div>
+                <div class="username" id="username-display">Username</div>
+                <button id="logout-btn">🚪 Keluar</button>
+            </div>
+        </header>
+        
+        <!-- Progressive Jackpot Display -->
+        <div class="jackpot-display">
+            <div class="jackpot-label">🏆 Progressive Jackpot</div>
+            <div class="jackpot-amount" id="jackpot-amount">Rp 1.000.000</div>
+        </div>
+        
+        <!-- Game Area -->
+        <div class="slot-machine">
+            <!-- Win Line Indicators -->
+            <div class="win-lines">
+                <div class="win-line" id="line1" style="top: 33%; left: 5%;">Line 1</div>
+                <div class="win-line" id="line2" style="top: 15%; left: 5%;">Line 2</div>
+                <div class="win-line" id="line3" style="top: 51%; left: 5%;">Line 3</div>
+                <div class="win-line" id="line4" style="top: 25%; right: 5%;">Line 4</div>
+                <div class="win-line" id="line5" style="top: 42%; right: 5%;">Line 5</div>
+            </div>
+            
+            <!-- Reels Container -->
+            <div class="reels-container">
+                <div class="reel" id="reel1">
+                    <div class="symbol symbol-seven"></div>
+                    <div class="symbol symbol-bar_triple"></div>
+                    <div class="symbol symbol-cherry"></div>
+                </div>
+                <div class="reel" id="reel2">
+                    <div class="symbol symbol-bar_double"></div>
+                    <div class="symbol symbol-seven"></div>
+                    <div class="symbol symbol-bar_single"></div>
+                </div>
+                <div class="reel" id="reel3">
+                    <div class="symbol symbol-cherry"></div>
+                    <div class="symbol symbol-bar_triple"></div>
+                    <div class="symbol symbol-seven"></div>
+                </div>
+                <div class="reel" id="reel4">
+                    <div class="symbol symbol-bar_single"></div>
+                    <div class="symbol symbol-cherry"></div>
+                    <div class="symbol symbol-bar_double"></div>
+                </div>
+                <div class="reel" id="reel5">
+                    <div class="symbol symbol-seven"></div>
+                    <div class="symbol symbol-bar_triple"></div>
+                    <div class="symbol symbol-blank"></div>
+                </div>
+            </div>
+            
+            <!-- Win Animation Container -->
+            <div class="win-animation" id="win-animation">
+                <div class="win-text">🎉 MENANG! 🎉</div>
+                <div class="win-amount" id="win-amount">Rp 500.000</div>
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="bet-controls">
+                <button id="decrease-bet" title="Kurangi Taruhan">−</button>
+                <div class="bet-amount">
+                    <span>🎯 Taruhan:</span>
+                    <span id="bet-amount">Rp 50.000</span>
+                </div>
+                <button id="increase-bet" title="Tambah Taruhan">+</button>
+            </div>
+            
+            <div class="spin-controls">
+                <button id="max-bet-btn" class="max-bet-btn" title="Taruhan Maksimum">
+                    💎 MAX BET
+                </button>
+                <button id="spin-btn" class="spin-btn" title="Putar Reel">
+                    🎰 PUTAR
+                </button>
+                <button id="auto-spin-btn" class="auto-spin-btn" title="Putar Otomatis">
+                    🔄 AUTO
+                </button>
+            </div>
+            
+            <div class="lines-controls">
+                <button id="decrease-lines" title="Kurangi Garis">−</button>
+                <div class="active-lines">
+                    <span>📊 Garis:</span>
+                    <span id="active-lines">9</span>
+                </div>
+                <button id="increase-lines" title="Tambah Garis">+</button>
+            </div>
+        </div>
+        
+        <!-- Recent Results -->
+        <div class="results-container">
+            <h3>📈 Hasil Terakhir</h3>
+            <div class="results-history" id="results-history">
+                <!-- Sample results for demonstration -->
+                <div class="result-item">
+                    <div class="result-spin">Spin #1</div>
+                    <div class="result-amount win">+Rp 250.000</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-spin">Spin #2</div>
+                    <div class="result-amount loss">-Rp 50.000</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-spin">Spin #3</div>
+                    <div class="result-amount jackpot">+Rp 1.000.000</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pay Table Button -->
+        <button id="paytable-btn" class="paytable-btn">
+            📋 TABEL PEMBAYARAN
+        </button>
+        
+        <!-- Pay Table Modal -->
+        <div id="paytable-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>💰 Tabel Pembayaran Slot Master</h2>
+                <div class="paytable" id="paytable-content">
+                    <!-- Sample paytable entries -->
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: linear-gradient(45deg, #000, #333); border: 2px solid #fff; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; font-size: 24px;">7</div>
+                        <div class="pay-info">
+                            <div class="pay-name">🎯 Seven (Jackpot)</div>
+                            <div class="pay-value">5x: Progressive Jackpot</div>
+                            <div class="pay-value">4x: 1000x taruhan</div>
+                            <div class="pay-value">3x: 200x taruhan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: #000; border: 2px solid #FFD700; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 8px; margin: 1px;">BAR</div>
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 8px; margin: 1px;">BAR</div>
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 8px; margin: 1px;">BAR</div>
+                        </div>
+                        <div class="pay-info">
+                            <div class="pay-name">🏆 Triple BAR</div>
+                            <div class="pay-value">5x: 2500x taruhan</div>
+                            <div class="pay-value">4x: 500x taruhan</div>
+                            <div class="pay-value">3x: 150x taruhan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: #000; border: 2px solid #FFD700; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 8px; padding: 2px 12px; margin: 2px;">BAR</div>
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 8px; padding: 2px 12px; margin: 2px;">BAR</div>
+                        </div>
+                        <div class="pay-info">
+                            <div class="pay-name">🥈 Double BAR</div>
+                            <div class="pay-value">5x: 1500x taruhan</div>
+                            <div class="pay-value">4x: 300x taruhan</div>
+                            <div class="pay-value">3x: 100x taruhan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: #000; border: 2px solid #FFD700; display: flex; align-items: center; justify-content: center;">
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 10px; padding: 3px 16px;">BAR</div>
+                        </div>
+                        <div class="pay-info">
+                            <div class="pay-name">🥉 Single BAR</div>
+                            <div class="pay-value">5x: 750x taruhan</div>
+                            <div class="pay-value">4x: 150x taruhan</div>
+                            <div class="pay-value">3x: 50x taruhan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: #000; border: 2px solid #DC143C; display: flex; align-items: center; justify-content: center;">
+                            <div style="display: flex; gap: 2px;">
+                                <div style="width: 12px; height: 12px; background: #DC143C; border-radius: 50%;"></div>
+                                <div style="width: 10px; height: 10px; background: #DC143C; border-radius: 50%;"></div>
+                            </div>
+                        </div>
+                        <div class="pay-info">
+                            <div class="pay-name">🍒 Cherry</div>
+                            <div class="pay-value">5x: 500x taruhan</div>
+                            <div class="pay-value">4x: 100x taruhan</div>
+                            <div class="pay-value">3x: 30x taruhan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="pay-item">
+                        <div class="pay-symbol" style="background: #000; border: 2px solid #FFD700; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 6px; margin: 1px;">BAR</div>
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 6px; margin: 1px;">BAR</div>
+                            <div style="background: #FFD700; color: #000; font-weight: bold; font-size: 6px; padding: 1px 6px; margin: 1px;">BAR</div>
+                        </div>
+                        <div class="pay-info">
+                            <div class="pay-name">🎁 Mixed BAR</div>
+                            <div class="pay-value">5x: 200x taruhan</div>
+                            <div class="pay-value">4x: 75x taruhan</div>
+                            <div class="pay-value">3x: 25x taruhan</div>
+                            <div style="font-size: 12px; color: #aaa; margin-top: 4px;">Kombinasi berbagai jenis BAR</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <h3 style="color: #FFD700; margin-bottom: 15px;">📋 Aturan Permainan:</h3>
+                    <ul style="color: #ddd; line-height: 1.6;">
+                        <li>🎯 Kombinasi harus dimulai dari reel paling kiri</li>
+                        <li>🏆 Progressive Jackpot dengan 5 Seven berturut-turut</li>
+                        <li>🎁 Mixed BAR: Kombinasi berbagai jenis BAR</li>
+                        <li>💎 Taruhan maksimum untuk peluang kemenangan terbesar</li>
+                        <li>🔄 Gunakan Auto Spin untuk bermain berkelanjutan</li>
+                        <li>📊 Semakin banyak garis aktif, semakin besar peluang menang</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Audio Controls -->
+    <div class="audio-controls">
+        <button id="toggle-audio" class="toggle-audio" title="Toggle Sound">
+            <img src="assets/images/ui/audio-on.png" alt="Toggle Audio" onerror="this.src='data:image/svg+xml;charset=utf-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%2224%22 height%3D%2224%22 viewBox%3D%220 0 24 24%22 fill%3D%22%23FFD700%22%3E%3Cpath d%3D%22M3 9v6h4l5 5V4L7 9H3z%22%2F%3E%3Cpath d%3D%22M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM19 12c0 2.76-1.46 5.18-3.64 6.51l-.72-1.43C16.07 16.2 17 14.22 17 12s-.93-4.2-2.36-5.08l.72-1.43C17.54 6.82 19 9.24 19 12z%22%2F%3E%3C%2Fsvg%3E'">
+        </button>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div style="text-align: center; color: white;">
+            <div style="font-size: 48px; margin-bottom: 20px;">🎰</div>
+            <div style="font-size: 24px; margin-bottom: 10px;">Loading...</div>
+            <div style="font-size: 16px; color: #aaa;">Memuat permainan slot...</div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/game/Symbol.js"></script>
+    <script src="js/game/Reel.js"></script>
+    <script src="js/game/SlotMachine.js"></script>
+    <script src="js/game.js"></script>
+    
+    <!-- Enhanced Game Script -->
+    <script>
+        // Enhanced initialization untuk asset baru
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show loading overlay
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'flex';
+            
+            // Hide loading after assets are loaded
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 2000);
+            
+            // Update jackpot display
+            function updateJackpotDisplay() {
+                const jackpotElement = document.getElementById('jackpot-amount');
+                if (jackpotElement && window.slotMachine) {
+                    const jackpotAmount = window.slotMachine.getProgressiveJackpot();
+                    jackpotElement.textContent = formatCurrency(jackpotAmount);
+                }
+            }
+            
+            // Update jackpot every 5 seconds
+            setInterval(updateJackpotDisplay, 5000);
+            
+            // Enhanced win animation
+            function showEnhancedWinAnimation(amount, isJackpot = false) {
+                const winAnimation = document.getElementById('win-animation');
+                const winText = winAnimation.querySelector('.win-text');
+                const winAmount = winAnimation.querySelector('.win-amount');
+                
+                if (isJackpot) {
+                    winAnimation.classList.add('jackpot');
+                    winText.innerHTML = '🏆 JACKPOT! 🏆';
+                    winText.style.fontSize = '56px';
+                    
+                    // Add fireworks effect
+                    createFireworks();
+                } else if (amount >= 100000) {
+                    winText.innerHTML = '💎 BIG WIN! 💎';
+                } else {
+                    winText.innerHTML = '🎉 MENANG! 🎉';
+                }
+                
+                winAmount.textContent = formatCurrency(amount);
+                winAnimation.classList.add('active');
+                
+                // Play celebration sound
+                if (window.slotMachine && window.slotMachine.soundEnabled) {
+                    const audio = new Audio(isJackpot ? 'assets/sounds/jackpot.mp3' : 'assets/sounds/win.mp3');
+                    audio.play().catch(e => console.log('Sound play failed:', e));
+                }
+                
+                setTimeout(() => {
+                    winAnimation.classList.remove('active', 'jackpot');
+                    winText.style.fontSize = '48px';
+                }, isJackpot ? 5000 : 3000);
+            }
+            
+            // Create fireworks effect for jackpot
+            function createFireworks() {
+                const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'];
+                
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(() => {
+                        const firework = document.createElement('div');
+                        firework.style.cssText = `
+                            position: fixed;
+                            width: 4px;
+                            height: 4px;
+                            background: ${colors[Math.floor(Math.random() * colors.length)]};
+                            border-radius: 50%;
+                            pointer-events: none;
+                            z-index: 9999;
+                            left: ${Math.random() * window.innerWidth}px;
+                            top: ${Math.random() * window.innerHeight}px;
+                            animation: fireworkExplode 2s ease-out forwards;
+                        `;
+                        
+                        document.body.appendChild(firework);
+                        
+                        setTimeout(() => {
+                            firework.remove();
+                        }, 2000);
+                    }, i * 100);
+                }
+            }
+            
+            // Add firework animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fireworkExplode {
+                    0% {
+                        transform: scale(0);
+                        opacity: 1;
+                    }
+                    50% {
+                        transform: scale(20);
+                        opacity: 0.8;
+                    }
+                    100% {
+                        transform: scale(40);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Override the original win handler
+            if (window.slotMachine) {
+                const originalOnWin = window.slotMachine.onWin;
+                window.slotMachine.onWin = function(result) {
+                    showEnhancedWinAnimation(result.totalWin, result.isJackpot);
+                    if (originalOnWin) {
+                        originalOnWin(result);
+                    }
+                };
+            }
+            
+            // Utility function
+            function formatCurrency(amount) {
+                return `Rp ${amount.toLocaleString('id-ID')}`;
+            }
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(event) {
+                if (!window.slotMachine || window.slotMachine.isSpinning) return;
+                
+                switch(event.code) {
+                    case 'Space':
+                        event.preventDefault();
+                        window.slotMachine.spin();
+                        break;
+                    case 'KeyM':
+                        event.preventDefault();
+                        document.getElementById('max-bet-btn').click();
+                        break;
+                    case 'KeyA':
+                        event.preventDefault();
+                        document.getElementById('auto-spin-btn').click();
+                        break;
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        document.getElementById('increase-bet').click();
+                        break;
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        document.getElementById('decrease-bet').click();
+                        break;
+                }
+            });
+            
+            // Add visual feedback for button presses
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 100);
+                });
+            });
+            
+            // Add tooltips showing keyboard shortcuts
+            document.getElementById('spin-btn').title += ' (Spacebar)';
+            document.getElementById('max-bet-btn').title += ' (M)';
+            document.getElementById('auto-spin-btn').title += ' (A)';
+            document.getElementById('increase-bet').title += ' (↑)';
+            document.getElementById('decrease-bet').title += ' (↓)';
+        });
+    </script>
+</body>
+</html>

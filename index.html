@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Game - Login</title>
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo">
+                <img src="assets/images/ui/logo.png" alt="Slot Game Logo">
+                <h1>Slot Master</h1>
+            </div>
+            
+            <div class="error-message" id="error-message"></div>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">Login</button>
+                
+                <div class="register-link">
+                    <p>Belum punya akun? <a href="#" id="register-toggle">Daftar sekarang</a></p>
+                </div>
+            </form>
+            
+            <form id="register-form" style="display: none;">
+                <div class="input-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" name="reg-username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" name="reg-email" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" name="reg-password" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="reg-confirm-password">Konfirmasi Password</label>
+                    <input type="password" id="reg-confirm-password" name="reg-confirm-password" required>
+                </div>
+                
+                <button type="submit" class="register-btn">Daftar</button>
+                
+                <div class="login-link">
+                    <p>Sudah punya akun? <a href="#" id="login-toggle">Login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Debug panel - Hapus pada produksi -->
+    <div class="debug-panel">
+        <button id="debug-button" style="position: fixed; bottom: 10px; right: 10px; padding: 5px; background: #333; color: #fff; border: none; cursor: pointer; font-size: 12px;">Debug Users</button>
+        <div id="debug-output" style="display: none; position: fixed; bottom: 40px; right: 10px; width: 300px; height: 300px; background: rgba(0,0,0,0.8); color: #fff; padding: 10px; overflow: auto; font-family: monospace; font-size: 12px;"></div>
+    </div>
+    
+    <script>
+        // Debug functionality - Hapus pada produksi
+        document.getElementById('debug-button').addEventListener('click', function() {
+            const debugOutput = document.getElementById('debug-output');
+            debugOutput.style.display = debugOutput.style.display === 'none' ? 'block' : 'none';
+            
+            if (debugOutput.style.display === 'block') {
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                debugOutput.innerHTML = '<h3>Users in localStorage:</h3>' + 
+                                        '<pre>' + JSON.stringify(users, null, 2) + '</pre>';
+            }
+        });
+    </script>
+    
+    <script src="js/login.js"></script>
+</body>
+</html>
