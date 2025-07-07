@@ -1,3 +1,825 @@
+/* main.css - Updated styles untuk asset baru */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --gold-color: #FFD700;
+    --red-color: #DC143C;
+    --white-color: #FFFFFF;
+    --dark-bg: #1a1a1a;
+    --card-bg: rgba(15, 23, 42, 0.8);
+    --win-glow: #FFD700;
+    --jackpot-glow: #FFFFFF;
+}
+
+body {
+    background: linear-gradient(135deg, #2c3e50, #1a1a2e, #16213e);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.game-container {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo img {
+    height: 60px;
+    width: auto;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.balance {
+    background: linear-gradient(90deg, #134e5e, #71b280);
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+}
+
+.username {
+    color: #ddd;
+    font-weight: 500;
+}
+
+#logout-btn {
+    background: rgba(220, 53, 69, 0.8);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#logout-btn:hover {
+    background: rgba(220, 53, 69, 1);
+}
+
+/* Slot Machine Styles - Updated untuk asset baru */
+.slot-machine {
+    position: relative;
+    min-height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    background: radial-gradient(circle at center, rgba(26, 26, 26, 0.9), rgba(0, 0, 0, 0.8));
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+.win-lines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.win-line {
+    position: absolute;
+    color: var(--win-glow);
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.win-line.active {
+    opacity: 1;
+    animation: winLinePulse 1s infinite;
+}
+
+@keyframes winLinePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.reels-container {
+    display: flex;
+    gap: 8px;
+    background: linear-gradient(145deg, #2c2c2c, #1a1a1a);
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    height: 300px;
+    box-shadow: 
+        inset 5px 5px 10px rgba(0, 0, 0, 0.3),
+        inset -5px -5px 10px rgba(255, 255, 255, 0.05);
+}
+
+.reel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #333, #222);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Symbol Styles - Updated untuk asset baru */
+.symbol {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: linear-gradient(145deg, #444, #222);
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Specific symbol styles */
+.symbol-seven {
+    background-color: #000;
+    border: 2px solid var(--white-color);
+}
+
+.symbol-seven.highlight {
+    border-color: var(--white-color);
+    box-shadow: 0 0 20px var(--white-color);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.8));
+}
+
+.symbol-bar_triple,
+.symbol-bar_double,
+.symbol-bar_single {
+    background-color: #000;
+    border: 2px solid var(--gold-color);
+}
+
+.symbol-bar_triple.highlight,
+.symbol-bar_double.highlight,
+.symbol-bar_single.highlight {
+    border-color: var(--gold-color);
+    box-shadow: 0 0 15px var(--gold-color);
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.2), rgba(0, 0, 0, 0.8));
+}
+
+.symbol-cherry {
+    background-color: #000;
+    border: 2px solid var(--red-color);
+}
+
+.symbol-cherry.highlight {
+    border-color: var(--red-color);
+    box-shadow: 0 0 12px var(--red-color);
+    background: radial-gradient(circle, rgba(220, 20, 60, 0.2), rgba(0, 0, 0, 0.8));
+}
+
+.symbol-blank {
+    background: #222;
+    border: 2px solid #444;
+}
+
+.symbol.highlight {
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* Win animations */
+@keyframes seven-sparkle {
+    0%, 100% { 
+        transform: scale(1.05) rotate(0deg);
+        filter: brightness(1);
+    }
+    25% { 
+        transform: scale(1.15) rotate(2deg);
+        filter: brightness(1.3);
+    }
+    50% { 
+        transform: scale(1.2) rotate(-2deg);
+        filter: brightness(1.5);
+    }
+    75% { 
+        transform: scale(1.15) rotate(2deg);
+        filter: brightness(1.3);
+    }
+}
+
+@keyframes bar-flash {
+    0%, 100% { 
+        opacity: 1;
+        filter: brightness(1);
+    }
+    50% { 
+        opacity: 0.8;
+        filter: brightness(1.4);
+    }
+}
+
+@keyframes bar-pulse {
+    0%, 100% { 
+        transform: scale(1.05);
+        filter: brightness(1);
+    }
+    50% { 
+        transform: scale(1.12);
+        filter: brightness(1.2);
+    }
+}
+
+@keyframes bar-glow {
+    0%, 100% { 
+        filter: brightness(1);
+        box-shadow: 0 0 15px var(--gold-color);
+    }
+    50% { 
+        filter: brightness(1.3);
+        box-shadow: 0 0 25px var(--gold-color);
+    }
+}
+
+@keyframes cherry-bounce {
+    0%, 100% { 
+        transform: scale(1.05) translateY(0);
+    }
+    25% { 
+        transform: scale(1.1) translateY(-8px);
+    }
+    75% { 
+        transform: scale(1.08) translateY(-3px);
+    }
+}
+
+/* Win Animation Container */
+.win-animation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 15px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 20;
+}
+
+.win-animation.active {
+    opacity: 1;
+    animation: winCelebration 2s ease-in-out;
+}
+
+@keyframes winCelebration {
+    0% { 
+        transform: scale(0.8);
+        background: rgba(0, 0, 0, 0.8);
+    }
+    50% { 
+        transform: scale(1.1);
+        background: rgba(255, 215, 0, 0.1);
+    }
+    100% { 
+        transform: scale(1);
+        background: rgba(0, 0, 0, 0.8);
+    }
+}
+
+.win-text {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--win-glow);
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 20px rgba(255, 215, 0, 0.6),
+        0 0 30px rgba(255, 215, 0, 0.4);
+    margin-bottom: 15px;
+    animation: winTextGlow 1.5s infinite alternate;
+}
+
+@keyframes winTextGlow {
+    0% { 
+        text-shadow: 
+            0 0 10px rgba(255, 215, 0, 0.8),
+            0 0 20px rgba(255, 215, 0, 0.6),
+            0 0 30px rgba(255, 215, 0, 0.4);
+    }
+    100% { 
+        text-shadow: 
+            0 0 15px rgba(255, 215, 0, 1),
+            0 0 25px rgba(255, 215, 0, 0.8),
+            0 0 35px rgba(255, 215, 0, 0.6);
+    }
+}
+
+.win-amount {
+    font-size: 36px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Jackpot specific styles */
+.win-animation.jackpot .win-text {
+    color: var(--jackpot-glow);
+    font-size: 56px;
+    text-shadow: 
+        0 0 15px rgba(255, 255, 255, 1),
+        0 0 30px rgba(255, 255, 255, 0.8),
+        0 0 45px rgba(255, 255, 255, 0.6);
+    animation: jackpotText 1s infinite;
+}
+
+@keyframes jackpotText {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Controls Styles */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    gap: 20px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.bet-controls, .lines-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bet-amount, .active-lines {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    padding: 12px 18px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.spin-controls {
+    display: flex;
+    gap: 12px;
+}
+
+#decrease-bet, #increase-bet, #decrease-lines, #increase-lines {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, var(--gold-color), #DAA520);
+    color: #000;
+    font-size: 22px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+#decrease-bet:hover, #increase-bet:hover, #decrease-lines:hover, #increase-lines:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+#decrease-bet:active, #increase-bet:active, #decrease-lines:active, #increase-lines:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.3),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.spin-btn, .max-bet-btn, .auto-spin-btn {
+    padding: 18px 30px;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 700;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.spin-btn {
+    background: linear-gradient(145deg, #ff6b6b, #ee5a24);
+    padding: 20px 50px;
+    font-size: 20px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.spin-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.spin-btn:hover::before {
+    left: 100%;
+}
+
+.spin-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.spin-btn:active {
+    transform: translateY(-1px);
+}
+
+.spin-btn.disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.max-bet-btn {
+    background: linear-gradient(145deg, #2ecc71, #27ae60);
+}
+
+.auto-spin-btn {
+    background: linear-gradient(145deg, #9b59b6, #8e44ad);
+}
+
+.auto-spin-btn.active {
+    background: linear-gradient(145deg, #e74c3c, #c0392b);
+    animation: autoSpinPulse 1.5s infinite;
+}
+
+@keyframes autoSpinPulse {
+    0%, 100% { box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); }
+    50% { box-shadow: 0 6px 12px rgba(231, 76, 60, 0.5); }
+}
+
+.max-bet-btn:hover, .auto-spin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Progressive Jackpot Display */
+.jackpot-display {
+    background: linear-gradient(145deg, #000, #222);
+    border: 2px solid var(--gold-color);
+    border-radius: 12px;
+    padding: 15px 20px;
+    text-align: center;
+    margin-bottom: 20px;
+    box-shadow: 
+        0 0 20px rgba(255, 215, 0, 0.3),
+        inset 0 2px 4px rgba(255, 215, 0, 0.1);
+}
+
+.jackpot-label {
+    color: var(--gold-color);
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.jackpot-amount {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    animation: jackpotGlow 2s infinite alternate;
+}
+
+@keyframes jackpotGlow {
+    0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+    100% { text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+}
+
+/* Results History */
+.results-container {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.results-container h3 {
+    color: #ddd;
+    margin-bottom: 12px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.results-container h3::before {
+    content: '🎰';
+    font-size: 18px;
+}
+
+.results-history {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px;
+}
+
+.result-item {
+    flex: 0 0 auto;
+    padding: 12px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 100px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-spin {
+    font-size: 12px;
+    color: #aaa;
+    font-weight: 500;
+}
+
+.result-amount {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.result-amount.win {
+    color: #4ade80;
+    text-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+}
+
+.result-amount.loss {
+    color: #f87171;
+}
+
+.result-amount.jackpot {
+    color: var(--jackpot-glow);
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+    font-size: 18px;
+}
+
+/* Pay Table */
+.paytable-btn {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    color: #ddd;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.paytable-btn:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold-color);
+    border-color: var(--gold-color);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    overflow: auto;
+}
+
+.modal-content {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(26, 26, 26, 0.95));
+    backdrop-filter: blur(15px);
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 900px;
+    width: 90%;
+    color: white;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close:hover {
+    color: var(--gold-color);
+}
+
+.paytable {
+    margin-top: 25px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.pay-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.pay-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.pay-symbol {
+    width: 64px;
+    height: 64px;
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.pay-info {
+    flex: 1;
+}
+
+.pay-name {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--gold-color);
+    font-size: 16px;
+}
+
+.pay-value {
+    color: #ddd;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+/* Audio Controls */
+.audio-controls {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    z-index: 50;
+}
+
+.toggle-audio {
+    background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.toggle-audio:hover {
+    border-color: var(--gold-color);
+    transform: scale(1.1);
+}
+
+.toggle-audio img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0.8);
+    transition: filter 0.3s;
+}
+
+.toggle-audio:hover img {
+    filter: brightness(1.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .game-container {
+        padding: 15px;
+    }
+    
+    .controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .spin-btn, .max-bet-btn, .auto-spin-btn {
+        padding: 15px 25px;
+        font-size: 16px;
+    }
+    
+    .reels-container {
+        height: 250px;
+        padding: 15px;
+    }
+    
+    .win-text {
+        font-size: 36px;
+    }
+    
+    .win-amount {
+        font-size: 24px;
+    }
+    
+    .paytable {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .bet-controls, .lines-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .spin-controls {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .results-history {
+        flex-direction: column;
+        max-height: 200px;
+    }
+}
+
 /* Additional CSS fixes and enhancements for main.css */
 
 /* Fix untuk symbol rendering dengan fallback images */
