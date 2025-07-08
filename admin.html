@@ -5,9 +5,207 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slot Master - Admin Dashboard</title>
     <link rel="stylesheet" href="css/admin.css">
+    <style>
+        /* Enhanced CSS untuk RTP Controls */
+        .rtp-controls-section {
+            background: linear-gradient(145deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.05));
+            border: 1px solid rgba(67, 97, 238, 0.3);
+            margin-bottom: 30px;
+        }
+        
+        .rtp-global-controls,
+        .rtp-user-controls,
+        .rtp-quick-actions {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .rtp-status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .rtp-low { 
+            background: rgba(248, 113, 113, 0.3);
+            color: #f87171;
+        }
+        
+        .rtp-normal { 
+            background: rgba(74, 222, 128, 0.3);
+            color: #4ade80;
+        }
+        
+        .rtp-high { 
+            background: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        
+        .user-rtp-control-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+        }
+        
+        .user-rtp-control-table th,
+        .user-rtp-control-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        
+        .user-rtp-control-table th {
+            background: rgba(67, 97, 238, 0.2);
+            font-weight: 600;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .win-type-buttons {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+        }
+        
+        .tiny-btn {
+            padding: 4px 8px;
+            font-size: 10px;
+            min-width: 20px;
+            border-radius: 3px;
+        }
+        
+        .rtp-target-input,
+        .force-loss-input {
+            width: 70px;
+            padding: 4px;
+            margin: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 4px;
+        }
+        
+        .quick-action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .user-rtp-search {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .user-rtp-search input {
+            flex: 1;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            border-radius: 5px;
+        }
+        
+        .consecutive-losses.high-loss {
+            color: #f87171;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .rtp-info-panel {
+            background: rgba(76, 201, 240, 0.1);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .rtp-legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .rtp-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+        
+        .rtp-legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .enhanced-table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+        
+        .table-filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .win-type-small { background: #4ade80; }
+        .win-type-medium { background: #60a5fa; }
+        .win-type-large { background: #f59e0b; }
+        .win-type-jackpot { background: #ef4444; }
+        
+        .real-time-indicator {
+            position: fixed;
+            top: 10px;
+            right: 100px;
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            border: 1px solid #4ade80;
+            animation: blink 2s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
+        <!-- Real-time indicator -->
+        <div class="real-time-indicator">
+            🔄 Live RTP Control Active
+        </div>
+        
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo">
@@ -20,6 +218,10 @@
                     <li class="active" data-section="dashboard">
                         <span class="icon">📊</span>
                         <span>Dashboard</span>
+                    </li>
+                    <li data-section="rtp-control">
+                        <span class="icon">🎯</span>
+                        <span>Kontrol RTP</span>
                     </li>
                     <li data-section="game-settings">
                         <span class="icon">⚙️</span>
@@ -77,8 +279,8 @@
                     
                     <div class="stat-card">
                         <div class="stat-title">RTP Keseluruhan</div>
-                        <div class="stat-value">95.4%</div>
-                        <div class="stat-change negative">-0.2% minggu ini</div>
+                        <div class="stat-value">88.5%</div>
+                        <div class="stat-change negative">House Edge Optimal</div>
                     </div>
                 </div>
                 
@@ -86,16 +288,14 @@
                     <div class="chart-card">
                         <h3>Aktivitas Permainan (7 Hari Terakhir)</h3>
                         <div class="chart" id="activity-chart">
-                            <!-- Chart will be rendered here -->
                             <div class="chart-placeholder">Grafik Aktivitas</div>
                         </div>
                     </div>
                     
                     <div class="chart-card">
-                        <h3>Distribusi Kemenangan</h3>
-                        <div class="chart" id="wins-distribution-chart">
-                            <!-- Chart will be rendered here -->
-                            <div class="chart-placeholder">Grafik Distribusi</div>
+                        <h3>Distribusi RTP Real-time</h3>
+                        <div class="chart" id="rtp-distribution-chart">
+                            <div class="chart-placeholder">Grafik RTP Per User</div>
                         </div>
                     </div>
                 </div>
@@ -110,6 +310,7 @@
                                 <th>Aktivitas</th>
                                 <th>Taruhan</th>
                                 <th>Hasil</th>
+                                <th>RTP</th>
                             </tr>
                         </thead>
                         <tbody id="recent-activity-table">
@@ -119,6 +320,7 @@
                                 <td>Spin</td>
                                 <td>Rp 100,000</td>
                                 <td class="win">+Rp 250,000</td>
+                                <td><span class="rtp-status-indicator rtp-normal">96.2%</span></td>
                             </tr>
                             <tr>
                                 <td>08/05/2025 10:31</td>
@@ -126,6 +328,7 @@
                                 <td>Spin</td>
                                 <td>Rp 50,000</td>
                                 <td class="loss">-Rp 50,000</td>
+                                <td><span class="rtp-status-indicator rtp-low">88.5%</span></td>
                             </tr>
                             <tr>
                                 <td>08/05/2025 10:30</td>
@@ -133,23 +336,134 @@
                                 <td>Spin</td>
                                 <td>Rp 25,000</td>
                                 <td class="win">+Rp 75,000</td>
-                            </tr>
-                            <tr>
-                                <td>08/05/2025 10:28</td>
-                                <td>highroller</td>
-                                <td>Spin</td>
-                                <td>Rp 500,000</td>
-                                <td class="loss">-Rp 500,000</td>
-                            </tr>
-                            <tr>
-                                <td>08/05/2025 10:25</td>
-                                <td>newplayer</td>
-                                <td>Deposit</td>
-                                <td>-</td>
-                                <td>+Rp 1,000,000</td>
+                                <td><span class="rtp-status-indicator rtp-high">98.1%</span></td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+            
+            <!-- RTP Control Section -->
+            <section id="rtp-control" class="content-section">
+                <div class="rtp-info-panel">
+                    <h3>🎯 Informasi Kontrol RTP</h3>
+                    <p><strong>🚫 BATASAN KETAT:</strong> Sistem ini dibatasi maksimal <strong>RTP 80%</strong> untuk memastikan profit maksimal. Pemain akan sangat sering kalah dan kemenangan sangat kecil. Range: 70%-80% SAJA!</p>
+                    
+                    <div class="rtp-legend">
+                        <div class="rtp-legend-item">
+                            <div class="rtp-legend-color rtp-low"></div>
+                            <span>RTP Ultra Rendah (70%-75%) - Hampir Tidak Pernah Menang</span>
+                        </div>
+                        <div class="rtp-legend-item">
+                            <div class="rtp-legend-color rtp-normal"></div>
+                            <span>RTP Rendah (75%-78%) - Sangat Jarang Menang</span>
+                        </div>
+                        <div class="rtp-legend-item">
+                            <div class="rtp-legend-color rtp-high"></div>
+                            <span>RTP Maksimal (78%-80%) - Masih Sering Kalah</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="settings-card rtp-controls-section">
+                    <h3>🎯 Kontrol RTP Global</h3>
+                    
+                    <div class="rtp-global-controls">
+                        <h4>Pengaturan Global RTP</h4>
+                        <div class="form-group">
+                            <label for="rtp-control-enabled">Aktifkan Kontrol RTP</label>
+                            <label class="switch">
+                                <input type="checkbox" id="rtp-control-enabled" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="global-rtp">RTP Global Target</label>
+                            <input type="range" id="global-rtp" min="80" max="99" value="95.5" step="0.1">
+                            <span id="global-rtp-value">95.5%</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="rtp-adjustment-speed">Kecepatan Penyesuaian RTP</label>
+                            <select id="rtp-adjustment-speed">
+                                <option value="slow">Lambat (Halus)</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="fast">Cepat (Agresif)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="max-spins-without-win">Maksimal Spin Tanpa Menang</label>
+                            <input type="number" id="max-spins-without-win" min="5" max="50" value="20">
+                        </div>
+                        
+                        <button id="apply-rtp-settings" class="btn primary-btn">🚀 Terapkan Pengaturan RTP</button>
+                    </div>
+                    
+                    <div class="rtp-user-controls">
+                        <h4>📋 Kontrol RTP Per User</h4>
+                        
+                        <div class="enhanced-table-controls">
+                            <div class="table-filter-group">
+                                <input type="text" id="rtp-user-search" placeholder="🔍 Cari username...">
+                                <button id="search-rtp-user" class="btn">Cari</button>
+                            </div>
+                            <div class="table-action-group">
+                                <button class="btn secondary-btn" onclick="adminUI.refreshRTPData()">🔄 Refresh</button>
+                                <button class="btn" onclick="adminUI.exportRTPReport()">📊 Export Report</button>
+                            </div>
+                        </div>
+                        
+                        <table class="user-rtp-control-table">
+                            <thead>
+                                <tr>
+                                    <th>👤 Username</th>
+                                    <th>📈 RTP Saat Ini</th>
+                                    <th>🎯 Target RTP</th>
+                                    <th>🎰 Total Spins</th>
+                                    <th>📉 Consecutive Losses</th>
+                                    <th>🚫 Force Loss Spins</th>
+                                    <th>⚡ Aksi Cepat</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-rtp-control-body">
+                                <!-- Data akan diisi oleh JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="rtp-quick-actions">
+                        <h4>⚡ Aksi Cepat RTP</h4>
+                        <div class="quick-action-buttons">
+                            <button class="btn win-type-medium" onclick="adminUI.forceWinAllUsers()">
+                                🏆 Paksa Menang Semua User
+                            </button>
+                            <button class="btn secondary-btn" onclick="adminUI.resetAllUserRTP()">
+                                🔄 Reset RTP Semua User
+                            </button>
+                            <button class="btn win-type-small" onclick="adminUI.setUltraLowRTPMode()">
+                                📉 Mode Ultra Rendah (70%)
+                            </button>
+                            <button class="btn win-type-small" onclick="adminUI.setLowRTPMode()">
+                                📊 Mode Rendah (75%)
+                            </button>
+                            <button class="btn win-type-large" onclick="adminUI.setBalancedRTPMode()">
+                                ⚖️ Mode Seimbang (78%)
+                            </button>
+                            <button class="btn win-type-medium" onclick="adminUI.setMaxRTPMode()">
+                                📈 Mode Maksimal (80%)
+                            </button>" onclick="adminUI.setLowRTPMode()">
+                                📊 Mode Rendah (82%)
+                            </button>
+                            <button class="btn win-type-large" onclick="adminUI.setBalancedRTPMode()">
+                                ⚖️ Mode Seimbang (88.5%)
+                            </button>
+                            <button class="btn win-type-jackpot" onclick="adminUI.emergencyStopAllWins()">
+                                🛑 Emergency Stop All Wins
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </section>
             
@@ -193,52 +507,44 @@
                         </thead>
                         <tbody id="symbols-table-body">
                             <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol1.png')"></div></td>
-                                <td><input type="text" value="Wild"></td>
+                                <td><div class="symbol-preview" style="background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold;">7</div></td>
+                                <td><input type="text" value="Seven"></td>
                                 <td><input type="number" value="500"></td>
                                 <td><input type="number" value="1000"></td>
                                 <td><input type="number" value="5000"></td>
                                 <td><input type="number" value="5" min="1" max="100"></td>
                             </tr>
                             <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol2.png')"></div></td>
-                                <td><input type="text" value="Scatter"></td>
+                                <td><div class="symbol-preview" style="background: #000; border: 2px solid #FFD700; display: flex; align-items: center; justify-content: center; color: #FFD700; font-size: 8px;">BAR</div></td>
+                                <td><input type="text" value="Triple BAR"></td>
                                 <td><input type="number" value="200"></td>
                                 <td><input type="number" value="500"></td>
                                 <td><input type="number" value="2500"></td>
                                 <td><input type="number" value="8" min="1" max="100"></td>
                             </tr>
                             <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol3.png')"></div></td>
-                                <td><input type="text" value="Diamond"></td>
+                                <td><div class="symbol-preview" style="background: #000; border: 2px solid #FFD700; display: flex; align-items: center; justify-content: center; color: #FFD700; font-size: 10px;">BAR</div></td>
+                                <td><input type="text" value="Double BAR"></td>
                                 <td><input type="number" value="100"></td>
                                 <td><input type="number" value="300"></td>
                                 <td><input type="number" value="1500"></td>
                                 <td><input type="number" value="12" min="1" max="100"></td>
                             </tr>
                             <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol4.png')"></div></td>
-                                <td><input type="text" value="Bell"></td>
+                                <td><div class="symbol-preview" style="background: #000; border: 2px solid #FFD700; display: flex; align-items: center; justify-content: center; color: #FFD700; font-size: 12px;">BAR</div></td>
+                                <td><input type="text" value="Single BAR"></td>
                                 <td><input type="number" value="50"></td>
                                 <td><input type="number" value="150"></td>
                                 <td><input type="number" value="750"></td>
                                 <td><input type="number" value="20" min="1" max="100"></td>
                             </tr>
                             <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol5.png')"></div></td>
+                                <td><div class="symbol-preview" style="background: #000; border: 2px solid #DC143C; display: flex; align-items: center; justify-content: center; font-size: 20px;">🍒</div></td>
                                 <td><input type="text" value="Cherry"></td>
                                 <td><input type="number" value="30"></td>
                                 <td><input type="number" value="100"></td>
                                 <td><input type="number" value="500"></td>
                                 <td><input type="number" value="25" min="1" max="100"></td>
-                            </tr>
-                            <tr>
-                                <td><div class="symbol-preview" style="background-image: url('assets/images/symbols/symbol6.png')"></div></td>
-                                <td><input type="text" value="Seven"></td>
-                                <td><input type="number" value="20"></td>
-                                <td><input type="number" value="80"></td>
-                                <td><input type="number" value="400"></td>
-                                <td><input type="number" value="30" min="1" max="100"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -287,7 +593,7 @@
                 </div>
                 
                 <div class="settings-card">
-                    <h3>Pengaturan RTP per Pelanggan</h3>
+                    <h3>⚠️ Pengaturan RTP per Pelanggan (Default: Rendah)</h3>
                     <div class="user-rtp-controls">
                         <div class="form-group search-group">
                             <label for="user-search">Cari Pengguna</label>
@@ -295,12 +601,23 @@
                             <button id="search-user-btn" class="btn">Cari</button>
                         </div>
                         
+                        <div style="background: rgba(255, 68, 68, 0.1); padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ff4444;">
+                            <h4 style="color: #ff4444; margin: 0 0 10px 0;">🚨 BATASAN KETAT: RTP Maksimal 80%</h4>
+                            <p style="margin: 0; font-size: 14px; color: #ddd;">
+                                • RTP default: <strong>78%</strong> (pemain hampir selalu kalah)<br>
+                                • Force Loss default: <strong>20 spins</strong><br>
+                                • Range RTP: <strong>70% - 80%</strong> SAJA (dibatasi ketat)<br>
+                                • Maksimal mutlak: <strong>80%</strong> - tidak bisa lebih tinggi!
+                            </p>
+                        </div>
+                        
                         <table class="user-rtp-table">
                             <thead>
                                 <tr>
                                     <th>Username</th>
                                     <th>RTP Saat Ini</th>
-                                    <th>RTP Kustom</th>
+                                    <th>RTP Target (70%-80%)</th>
+                                    <th>Force Loss Spins</th>
                                     <th>Putaran Berikutnya</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -308,10 +625,13 @@
                             <tbody id="user-rtp-table-body">
                                 <tr>
                                     <td>player123</td>
-                                    <td>92.5%</td>
+                                    <td><span style="color: #ff4444;">78.5%</span></td>
                                     <td>
-                                        <input type="number" value="92.5" min="1" max="99" step="0.1">
+                                        <input type="number" value="78.0" min="70" max="80" step="0.1" style="background: rgba(255,68,68,0.1);">
                                         <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <input type="number" value="20" min="0" max="60" style="background: rgba(255,68,68,0.1);">
                                     </td>
                                     <td>
                                         <select>
@@ -328,16 +648,19 @@
                                 </tr>
                                 <tr>
                                     <td>gambler777</td>
-                                    <td>98.2%</td>
+                                    <td><span style="color: #ff4444;">72.2%</span></td>
                                     <td>
-                                        <input type="number" value="98.2" min="1" max="99" step="0.1">
+                                        <input type="number" value="75.0" min="70" max="80" step="0.1" style="background: rgba(255,68,68,0.1);">
                                         <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <input type="number" value="25" min="0" max="60" style="background: rgba(255,68,68,0.1);">
                                     </td>
                                     <td>
                                         <select>
                                             <option value="">Tidak Ada</option>
-                                            <option value="win-small">Menang Kecil</option>
-                                            <option value="win-medium" selected>Menang Sedang</option>
+                                            <option value="win-small" selected>Menang Kecil</option>
+                                            <option value="win-medium">Menang Sedang</option>
                                             <option value="win-large">Menang Besar</option>
                                             <option value="jackpot">Jackpot</option>
                                         </select>
@@ -348,10 +671,13 @@
                                 </tr>
                                 <tr>
                                     <td>luckystar</td>
-                                    <td>95.4%</td>
+                                    <td><span style="color: #ffaa44;">80.0%</span></td>
                                     <td>
-                                        <input type="number" value="95.4" min="1" max="99" step="0.1">
+                                        <input type="number" value="80.0" min="70" max="80" step="0.1" style="background: rgba(255,68,68,0.1);">
                                         <span class="unit">%</span>
+                                    </td>
+                                    <td>
+                                        <input type="number" value="15" min="0" max="60" style="background: rgba(255,68,68,0.1);">
                                     </td>
                                     <td>
                                         <select>
@@ -368,26 +694,15 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-                
-                <div class="settings-card">
-                    <h3>Statistik Kemenangan</h3>
-                    <div class="win-stats">
-                        <div class="win-stat-chart">
-                            <h4>Persentase Kemenangan per Simbol</h4>
-                            <div class="chart" id="symbol-win-chart">
-                                <!-- Chart will be rendered here -->
-                                <div class="chart-placeholder">Grafik Simbol</div>
-                            </div>
-                        </div>
                         
-                        <div class="win-stat-chart">
-                            <h4>Persentase Kemenangan per Putaran</h4>
-                            <div class="chart" id="spin-win-chart">
-                                <!-- Chart will be rendered here -->
-                                <div class="chart-placeholder">Grafik Putaran</div>
-                            </div>
+                        <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #ffd700;">
+                            <h4 style="color: #ffd700; margin: 0 0 10px 0;">💡 Tips Pengaturan RTP (Maksimal 80%):</h4>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #ddd;">
+                                <li><strong>70-72%</strong>: Ultra rendah, hampir tidak pernah menang, profit maksimal</li>
+                                <li><strong>72-75%</strong>: Sangat rendah, sangat jarang menang, profit tinggi</li>
+                                <li><strong>75-78%</strong>: Rendah, jarang menang, profit baik</li>
+                                <li><strong>78-80%</strong>: Maksimal yang diizinkan, masih sering kalah</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -418,84 +733,7 @@
                             </tr>
                         </thead>
                         <tbody id="users-table-body">
-                            <tr>
-                                <td>1</td>
-                                <td>player123</td>
-                                <td>player123@example.com</td>
-                                <td>Rp 2,500,000</td>
-                                <td>354</td>
-                                <td>01/02/2025</td>
-                                <td><span class="status active">Aktif</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>gambler777</td>
-                                <td>gambler777@example.com</td>
-                                <td>Rp 150,000</td>
-                                <td>129</td>
-                                <td>15/03/2025</td>
-                                <td><span class="status active">Aktif</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>luckystar</td>
-                                <td>luckystar@example.com</td>
-                                <td>Rp 8,750,000</td>
-                                <td>521</td>
-                                <td>22/01/2025</td>
-                                <td><span class="status active">Aktif</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>4</td>
-                                <td>highroller</td>
-                                <td>highroller@example.com</td>
-                                <td>Rp 42,100,000</td>
-                                <td>865</td>
-                                <td>05/02/2025</td>
-                                <td><span class="status active">Aktif</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>5</td>
-                                <td>newplayer</td>
-                                <td>newplayer@example.com</td>
-                                <td>Rp 1,000,000</td>
-                                <td>0</td>
-                                <td>08/05/2025</td>
-                                <td><span class="status active">Aktif</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>6</td>
-                                <td>blocked_user</td>
-                                <td>blocked@example.com</td>
-                                <td>Rp 0</td>
-                                <td>42</td>
-                                <td>10/03/2025</td>
-                                <td><span class="status inactive">Diblokir</span></td>
-                                <td>
-                                    <button class="btn small-btn edit-btn">Edit</button>
-                                    <button class="btn small-btn delete-btn">Hapus</button>
-                                </td>
-                            </tr>
+                            <!-- Data akan diisi oleh JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -577,97 +815,11 @@
                                 <th>Saldo Sebelum</th>
                                 <th>Saldo Sesudah</th>
                                 <th>Kombinasi</th>
+                                <th>RTP Info</th>
                             </tr>
                         </thead>
                         <tbody id="logs-table-body">
-                            <tr>
-                                <td>12345</td>
-                                <td>08/05/2025 10:32:45</td>
-                                <td>player123</td>
-                                <td>Spin</td>
-                                <td>Rp 100,000</td>
-                                <td class="win">+Rp 250,000</td>
-                                <td>Rp 2,350,000</td>
-                                <td>Rp 2,500,000</td>
-                                <td>Wild-Wild-Diamond</td>
-                            </tr>
-                            <tr>
-                                <td>12344</td>
-                                <td>08/05/2025 10:31:30</td>
-                                <td>gambler777</td>
-                                <td>Spin</td>
-                                <td>Rp 50,000</td>
-                                <td class="loss">-Rp 50,000</td>
-                                <td>Rp 200,000</td>
-                                <td>Rp 150,000</td>
-                                <td>Cherry-Bell-Seven</td>
-                            </tr>
-                            <tr>
-                                <td>12343</td>
-                                <td>08/05/2025 10:30:15</td>
-                                <td>luckystar</td>
-                                <td>Spin</td>
-                                <td>Rp 25,000</td>
-                                <td class="win">+Rp 75,000</td>
-                                <td>Rp 8,700,000</td>
-                                <td>Rp 8,750,000</td>
-                                <td>Diamond-Diamond-Diamond</td>
-                            </tr>
-                            <tr>
-                                <td>12342</td>
-                                <td>08/05/2025 10:28:42</td>
-                                <td>highroller</td>
-                                <td>Spin</td>
-                                <td>Rp 500,000</td>
-                                <td class="loss">-Rp 500,000</td>
-                                <td>Rp 42,600,000</td>
-                                <td>Rp 42,100,000</td>
-                                <td>Cherry-Seven-Bell</td>
-                            </tr>
-                            <tr>
-                                <td>12341</td>
-                                <td>08/05/2025 10:25:10</td>
-                                <td>newplayer</td>
-                                <td>Deposit</td>
-                                <td>-</td>
-                                <td>+Rp 1,000,000</td>
-                                <td>Rp 0</td>
-                                <td>Rp 1,000,000</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>12340</td>
-                                <td>08/05/2025 10:20:05</td>
-                                <td>luckystar</td>
-                                <td>Spin</td>
-                                <td>Rp 100,000</td>
-                                <td class="win">+Rp 8,500,000</td>
-                                <td>Rp 300,000</td>
-                                <td>Rp 8,700,000</td>
-                                <td>Wild-Wild-Wild</td>
-                            </tr>
-                            <tr>
-                                <td>12339</td>
-                                <td>08/05/2025 10:18:30</td>
-                                <td>gambler777</td>
-                                <td>Deposit</td>
-                                <td>-</td>
-                                <td>+Rp 200,000</td>
-                                <td>Rp 0</td>
-                                <td>Rp 200,000</td>
-                                <td>-</td>
-                            </tr>
-                            <tr>
-                                <td>12338</td>
-                                <td>08/05/2025 10:15:20</td>
-                                <td>highroller</td>
-                                <td>Spin</td>
-                                <td>Rp 1,000,000</td>
-                                <td class="win">+Rp 1,500,000</td>
-                                <td>Rp 42,100,000</td>
-                                <td>Rp 42,600,000</td>
-                                <td>Diamond-Diamond-Bell</td>
-                            </tr>
+                            <!-- Data akan diisi oleh JavaScript -->
                         </tbody>
                     </table>
                 </div>
@@ -685,7 +837,433 @@
     
     <!-- Scripts -->
     <script src="js/config.js"></script>
+    <script src="js/game/Symbol.js"></script>
+    <script src="js/game/Reel.js"></script>
+    <script src="js/game/SlotMachine.js"></script>
     <script src="js/ui/AdminUI.js"></script>
     <script src="js/admin.js"></script>
+    
+    <!-- Enhanced Admin Script -->
+    <script>
+        // Enhanced admin functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize enhanced features
+            initializeEnhancedFeatures();
+            
+            // Setup real-time monitoring
+            setupRealTimeMonitoring();
+            
+            // Add advanced RTP functions
+            addAdvancedRTPFunctions();
+        });
+        
+        function initializeEnhancedFeatures() {
+            // Enhanced navigation
+            const menuItems = document.querySelectorAll('.menu li[data-section]');
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const section = this.getAttribute('data-section');
+                    switchToSection(section);
+                });
+            });
+            
+            // Initialize tooltips for RTP controls
+            addTooltips();
+        }
+        
+        function switchToSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show target section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Update menu active state
+            document.querySelectorAll('.menu li').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+            
+            // Update page title
+            const pageTitle = document.getElementById('page-title');
+            const sectionNames = {
+                'dashboard': 'Dashboard',
+                'rtp-control': 'Kontrol RTP',
+                'game-settings': 'Pengaturan Game',
+                'win-settings': 'Pengaturan Kemenangan',
+                'users': 'Manajemen User',
+                'logs': 'Log Permainan'
+            };
+            pageTitle.textContent = sectionNames[sectionId] || 'Dashboard';
+        }
+        
+        function setupRealTimeMonitoring() {
+            // Monitor RTP changes in real-time
+            setInterval(updateRTPMonitoring, 5000);
+            
+            // Monitor user activity
+            setInterval(updateUserActivity, 10000);
+        }
+        
+        function updateRTPMonitoring() {
+            // Update RTP indicators in real-time
+            if (window.adminUI) {
+                window.adminUI.updateUserRTPTable();
+            }
+            
+            // Update dashboard stats
+            updateDashboardRTPStats();
+        }
+        
+        function updateUserActivity() {
+            // Refresh recent activity
+            if (window.adminUI) {
+                window.adminUI.updateRecentActivity();
+            }
+        }
+        
+        function updateDashboardRTPStats() {
+            // Simulate real-time RTP changes for demo
+            const rtpIndicators = document.querySelectorAll('.rtp-status-indicator');
+            rtpIndicators.forEach(indicator => {
+                const currentValue = parseFloat(indicator.textContent);
+                const change = (Math.random() - 0.5) * 0.2; // Small random change
+                const newValue = Math.max(80, Math.min(99, currentValue + change));
+                indicator.textContent = newValue.toFixed(1) + '%';
+                
+                // Update class based on new value
+                indicator.className = 'rtp-status-indicator ' + 
+                    (newValue < 90 ? 'rtp-low' : newValue > 97 ? 'rtp-high' : 'rtp-normal');
+            });
+        }
+        
+        function addAdvancedRTPFunctions() {
+            // Add functions to AdminUI
+            if (window.adminUI) {
+                window.adminUI.setBalancedRTPMode = function() {
+                    if (confirm('Set all users to balanced RTP mode (95%)?')) {
+                        this.updateGlobalRTP(95.0);
+                        this.showNotification('Balanced RTP mode activated!', 'info');
+                    }
+                };
+                
+                window.adminUI.emergencyStopAllWins = function() {
+                    if (confirm('EMERGENCY: Stop all wins for all users? This is irreversible!')) {
+                        const activeUsers = this.users.filter(u => u.role === 'user');
+                        activeUsers.forEach(user => {
+                            if (!this.userRTPSettings[user.username]) {
+                                this.userRTPSettings[user.username] = {};
+                            }
+                            this.userRTPSettings[user.username].forceLossSpins = 50;
+                            this.userRTPSettings[user.username].customRTP = 80;
+                        });
+                        
+                        localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+                        this.updateUserRTPTable();
+                        this.showNotification('EMERGENCY STOP ACTIVATED - All wins stopped!', 'warning');
+                    }
+                };
+                
+                window.adminUI.refreshRTPData = function() {
+                    this.loadUserRTPSettings();
+                    this.loadGameLogs();
+                    this.updateUserRTPTable();
+                    this.showNotification('RTP data refreshed!', 'info');
+                };
+                
+                window.adminUI.exportRTPReport = function() {
+                    const activeUsers = this.users.filter(u => u.role === 'user');
+                    const reportData = activeUsers.map(user => {
+                        const userLogs = this.gameLogs.filter(log => log.username === user.username);
+                        const userStats = this.calculateUserRTPStats(userLogs);
+                        const userSettings = this.userRTPSettings[user.username] || {};
+                        
+                        return {
+                            username: user.username,
+                            currentRTP: userStats.currentRTP,
+                            targetRTP: userSettings.customRTP || 95.5,
+                            totalSpins: userStats.totalSpins,
+                            consecutiveLosses: userStats.consecutiveLosses,
+                            balance: user.balance || 0,
+                            forceLossSpins: userSettings.forceLossSpins || 0
+                        };
+                    });
+                    
+                    // Create CSV
+                    const headers = ['Username', 'Current RTP (%)', 'Target RTP (%)', 'Total Spins', 'Consecutive Losses', 'Balance', 'Force Loss Spins'];
+                    const csvContent = [
+                        headers.join(','),
+                        ...reportData.map(row => [
+                            row.username,
+                            row.currentRTP,
+                            row.targetRTP,
+                            row.totalSpins,
+                            row.consecutiveLosses,
+                            row.balance,
+                            row.forceLossSpins
+                        ].join(','))
+                    ].join('\n');
+                    
+                    // Download CSV
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `rtp_report_${new Date().toISOString().split('T')[0]}.csv`;
+                    link.click();
+                    
+                    this.showNotification('RTP report exported!', 'success');
+                };
+            }
+        }
+        
+        function addTooltips() {
+            // Add helpful tooltips
+            const tooltips = {
+                'global-rtp': 'Set target RTP for all users. Lower values increase house edge.',
+                'rtp-adjustment-speed': 'How quickly the system adjusts to reach target RTP.',
+                'max-spins-without-win': 'Force a win after this many consecutive losses.',
+                'rtp-control-enabled': 'Enable/disable the entire RTP control system.'
+            };
+            
+            Object.keys(tooltips).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.title = tooltips[id];
+                }
+            });
+        }
+        
+        // Enhanced keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl + 1-6 for quick section switching
+            if (event.ctrlKey && event.key >= '1' && event.key <= '6') {
+                event.preventDefault();
+                const sections = ['dashboard', 'rtp-control', 'game-settings', 'win-settings', 'users', 'logs'];
+                const sectionIndex = parseInt(event.key) - 1;
+                if (sections[sectionIndex]) {
+                    switchToSection(sections[sectionIndex]);
+                }
+            }
+            
+            // Ctrl + R for refresh RTP data
+            if (event.ctrlKey && event.key === 'r') {
+                event.preventDefault();
+                if (window.adminUI && window.adminUI.refreshRTPData) {
+                    window.adminUI.refreshRTPData();
+                }
+            }
+            
+            // Ctrl + E for export
+            if (event.ctrlKey && event.key === 'e') {
+                event.preventDefault();
+                if (window.adminUI && window.adminUI.exportRTPReport) {
+                    window.adminUI.exportRTPReport();
+                }
+            }
+        });
+        
+        // Show keyboard shortcuts help
+        function showKeyboardShortcuts() {
+            const shortcuts = [
+                'Ctrl + 1: Dashboard',
+                'Ctrl + 2: RTP Control',
+                'Ctrl + 3: Game Settings',
+                'Ctrl + 4: Win Settings',
+                'Ctrl + 5: Users',
+                'Ctrl + 6: Logs',
+                'Ctrl + R: Refresh RTP Data',
+                'Ctrl + E: Export RTP Report'
+            ];
+            
+            alert('Keyboard Shortcuts:\n\n' + shortcuts.join('\n'));
+        }
+        
+        // Add help button
+        document.addEventListener('DOMContentLoaded', function() {
+            const helpButton = document.createElement('button');
+            helpButton.innerHTML = '❓';
+            helpButton.title = 'Show keyboard shortcuts';
+            helpButton.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--primary-color);
+                color: white;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                z-index: 1000;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            `;
+            helpButton.addEventListener('click', showKeyboardShortcuts);
+            document.body.appendChild(helpButton);
+        });
+        
+        // Advanced RTP monitoring functions
+        function monitorCriticalRTP() {
+            // Check for users with critically low or high RTP
+            if (window.adminUI) {
+                const users = window.adminUI.users.filter(u => u.role === 'user');
+                users.forEach(user => {
+                    const userLogs = window.adminUI.gameLogs.filter(log => log.username === user.username);
+                    const userStats = window.adminUI.calculateUserRTPStats(userLogs);
+                    
+                    // Alert for critically low RTP
+                    if (userStats.currentRTP < 85) {
+                        console.warn(`Critical RTP Alert: ${user.username} has RTP of ${userStats.currentRTP}%`);
+                        window.adminUI.showNotification(
+                            `⚠️ Critical: ${user.username} RTP is ${userStats.currentRTP}%`, 
+                            'warning'
+                        );
+                    }
+                    
+                    // Alert for extremely high consecutive losses
+                    if (userStats.consecutiveLosses > 25) {
+                        console.warn(`High Loss Alert: ${user.username} has ${userStats.consecutiveLosses} consecutive losses`);
+                        window.adminUI.showNotification(
+                            `🚨 Alert: ${user.username} has ${userStats.consecutiveLosses} consecutive losses`, 
+                            'error'
+                        );
+                    }
+                });
+            }
+        }
+        
+        // Run critical monitoring every 30 seconds
+        setInterval(monitorCriticalRTP, 30000);
+        
+        // Enhanced notification system
+        function showAdvancedNotification(message, type = 'info', duration = 3000, actions = []) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type} advanced`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 9999;
+                opacity: 0;
+                transform: translateY(-20px);
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                max-width: 400px;
+                backdrop-filter: blur(10px);
+            `;
+            
+            const colors = {
+                success: 'linear-gradient(135deg, #4ade80, #22c55e)',
+                error: 'linear-gradient(135deg, #f87171, #ef4444)',
+                warning: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                info: 'linear-gradient(135deg, #60a5fa, #3b82f6)'
+            };
+            notification.style.background = colors[type] || colors.info;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.style.marginBottom = actions.length > 0 ? '10px' : '0';
+            notification.appendChild(messageDiv);
+            
+            // Add action buttons if provided
+            if (actions.length > 0) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.style.display = 'flex';
+                actionsDiv.style.gap = '8px';
+                
+                actions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.textContent = action.text;
+                    button.style.cssText = `
+                        padding: 4px 8px;
+                        border: 1px solid rgba(255, 255, 255, 0.5);
+                        background: rgba(255, 255, 255, 0.2);
+                        color: white;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-size: 12px;
+                    `;
+                    button.addEventListener('click', () => {
+                        action.callback();
+                        notification.remove();
+                    });
+                    actionsDiv.appendChild(button);
+                });
+                
+                notification.appendChild(actionsDiv);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => {
+                notification.style.opacity = '1';
+                notification.style.transform = 'translateY(0)';
+            }, 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-20px)';
+                setTimeout(() => notification.remove(), 300);
+            }, duration);
+        }
+        
+        // Console commands for advanced users
+        window.adminConsole = {
+            setUserRTP: (username, rtp) => {
+                if (window.adminUI) {
+                    window.adminUI.setUserRTP(username, rtp, 0, 20);
+                    console.log(`Set ${username} RTP to ${rtp}%`);
+                }
+            },
+            
+            forceWin: (username, type = 'medium') => {
+                if (window.adminUI) {
+                    window.adminUI.forceUserWin(username, type);
+                    console.log(`Forced ${type} win for ${username}`);
+                }
+            },
+            
+            getStats: () => {
+                if (window.adminUI) {
+                    const stats = window.adminUI.calculateStats();
+                    console.table(stats);
+                    return stats;
+                }
+            },
+            
+            help: () => {
+                console.log(`
+                Available Console Commands:
+                - adminConsole.setUserRTP(username, rtp): Set user RTP
+                - adminConsole.forceWin(username, type): Force user win
+                - adminConsole.getStats(): Get system statistics
+                - adminConsole.emergency(): Emergency stop all wins
+                - adminConsole.help(): Show this help
+                `);
+            },
+            
+            emergency: () => {
+                if (confirm('EMERGENCY: Stop all wins?')) {
+                    if (window.adminUI && window.adminUI.emergencyStopAllWins) {
+                        window.adminUI.emergencyStopAllWins();
+                    }
+                }
+            }
+        };
+        
+        console.log('🎯 Enhanced Admin Panel Loaded');
+        console.log('Type "adminConsole.help()" for available commands');
+    </script>
 </body>
 </html>

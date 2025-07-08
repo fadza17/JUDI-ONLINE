@@ -1,10 +1,11 @@
-// js/ui/AdminUI.js - Admin Interface Handler
+// js/ui/AdminUI.js - Enhanced Admin Interface dengan RTP Control
 
 class AdminUI {
     constructor() {
         this.currentUser = null;
         this.users = [];
         this.gameLogs = [];
+        this.userRTPSettings = {};
         this.charts = {};
         
         this.init();
@@ -20,6 +21,7 @@ class AdminUI {
         // Load data
         this.loadUsers();
         this.loadGameLogs();
+        this.loadUserRTPSettings();
         
         // Setup event listeners
         this.setupEventListeners();
@@ -29,6 +31,9 @@ class AdminUI {
         
         // Setup real-time updates
         this.setupRealTimeUpdates();
+        
+        // Setup RTP controls
+        this.setupRTPControls();
     }
     
     checkAdminAuth() {
@@ -57,7 +62,25 @@ class AdminUI {
         this.gameLogs = JSON.parse(localStorage.getItem('gameLogs') || '[]');
     }
     
+    loadUserRTPSettings() {
+        this.userRTPSettings = JSON.parse(localStorage.getItem('userRTPSettings') || '{}');
+    }
+    
     setupEventListeners() {
+        // Existing event listeners
+        this.setupBasicEventListeners();
+        
+        // RTP specific event listeners
+        this.setupRTPEventListeners();
+        
+        // User management
+        this.setupUserManagement();
+        
+        // Logs management
+        this.setupLogsManagement();
+    }
+    
+    setupBasicEventListeners() {
         // Win frequency slider
         const winFrequencySlider = document.getElementById('win-frequency');
         const winFrequencyValue = document.getElementById('win-frequency-value');
@@ -84,14 +107,531 @@ class AdminUI {
                 this.saveGameSettings();
             });
         }
-        
-        // User management
-        this.setupUserManagement();
-        
-        // Logs management
-        this.setupLogsManagement();
     }
     
+    setupRTPEventListeners() {
+        // RTP Control toggle
+        const rtpControlEnabled = document.getElementById('rtp-control-enabled');
+        if (rtpControlEnabled) {
+            rtpControlEnabled.addEventListener('change', () => {
+                this.updateAdminSettings();
+                this.toggleRTPControls(rtpControlEnabled.checked);
+            });
+        }
+        
+        // Global RTP settings
+        const globalRTPSlider = document.getElementById('global-rtp');
+        const globalRTPValue = document.getElementById('global-rtp-value');
+        
+        if (globalRTPSlider && globalRTPValue) {
+            globalRTPSlider.addEventListener('input', (e) => {
+                globalRTPValue.textContent = e.target.value + '%';
+                this.updateGlobalRTP(parseFloat(e.target.value));
+            });
+        }
+        
+        // RTP adjustment speed
+        const rtpAdjustmentSpeed = document.getElementById('rtp-adjustment-speed');
+        if (rtpAdjustmentSpeed) {
+            rtpAdjustmentSpeed.addEventListener('change', () => {
+                this.updateAdminSettings();
+            });
+        }
+        
+        // Apply RTP settings button
+        const applyRTPBtn = document.getElementById('apply-rtp-settings');
+        if (applyRTPBtn) {
+            applyRTPBtn.addEventListener('click', () => {
+                this.applyAllRTPSettings();
+            });
+        }
+    }
+    
+    setupRTPControls() {
+        this.createRTPControlsSection();
+        this.updateUserRTPTable();
+    }
+    
+    createRTPControlsSection() {
+        // Check if RTP controls section exists
+        let rtpSection = document.getElementById('rtp-controls-section');
+        
+        if (!rtpSection) {
+            // Create RTP controls section
+            rtpSection = document.createElement('div');
+            rtpSection.id = 'rtp-controls-section';
+            rtpSection.className = 'settings-card';
+            rtpSection.innerHTML = `
+                <h3>🎯 Kontrol RTP (Return to Player)</h3>
+                
+                <div class="rtp-global-controls">
+                    <h4>Pengaturan Global RTP</h4>
+                    <div class="form-group">
+                        <label for="rtp-control-enabled">Aktifkan Kontrol RTP</label>
+                        <label class="switch">
+                            <input type="checkbox" id="rtp-control-enabled" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="global-rtp">RTP Global Target</label>
+                        <input type="range" id="global-rtp" min="85" max="98" value="95.5" step="0.1">
+                        <span id="global-rtp-value">95.5%</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rtp-adjustment-speed">Kecepatan Penyesuaian RTP</label>
+                        <select id="rtp-adjustment-speed">
+                            <option value="slow">Lambat</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="fast">Cepat</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max-spins-without-win">Maksimal Spin Tanpa Menang</label>
+                        <input type="number" id="max-spins-without-win" min="5" max="50" value="20">
+                    </div>
+                    
+                    <button id="apply-rtp-settings" class="btn primary-btn">Terapkan Pengaturan RTP</button>
+                </div>
+                
+                <div class="rtp-user-controls">
+                    <h4>Kontrol RTP Per User</h4>
+                    <div class="user-rtp-search">
+                        <input type="text" id="rtp-user-search" placeholder="Cari username...">
+                        <button id="search-rtp-user" class="btn">Cari</button>
+                    </div>
+                    
+                    <table class="user-rtp-control-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>RTP Saat Ini</th>
+                                <th>Target RTP</th>
+                                <th>Total Spins</th>
+                                <th>Consecutive Losses</th>
+                                <th>Force Loss Spins</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-rtp-control-body">
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="rtp-quick-actions">
+                    <h4>Aksi Cepat</h4>
+                    <div class="quick-action-buttons">
+                        <button class="btn" onclick="adminUI.forceWinAllUsers()">Paksa Menang Semua User</button>
+                        <button class="btn" onclick="adminUI.resetAllUserRTP()">Reset RTP Semua User</button>
+                        <button class="btn" onclick="adminUI.setLowRTPMode()">Mode RTP Rendah (85%)</button>
+                        <button class="btn" onclick="adminUI.setHighRTPMode()">Mode RTP Tinggi (97%)</button>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after win settings section
+            const winSettingsSection = document.getElementById('win-settings');
+            if (winSettingsSection && winSettingsSection.parentNode) {
+                winSettingsSection.parentNode.insertBefore(rtpSection, winSettingsSection.nextSibling);
+            }
+        }
+        
+        // Setup event listeners for new elements
+        this.setupRTPEventListeners();
+    }
+    
+    updateUserRTPTable() {
+        const userRTPTableBody = document.getElementById('user-rtp-control-body');
+        if (!userRTPTableBody) {
+            setTimeout(() => this.updateUserRTPTable(), 1000);
+            return;
+        }
+        
+        userRTPTableBody.innerHTML = '';
+        
+        // Get users with game activity
+        const activeUsers = this.users.filter(u => u.role === 'user');
+        
+        activeUsers.forEach(user => {
+            const userLogs = this.gameLogs.filter(log => log.username === user.username);
+            const userStats = this.calculateUserRTPStats(userLogs);
+            const userSettings = this.userRTPSettings[user.username] || {};
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <strong>${user.username}</strong>
+                    <br><small>Balance: ${this.formatCurrency(user.balance || 0)}</small>
+                </td>
+                <td>
+                    <span class="rtp-current ${userStats.currentRTP < 90 ? 'rtp-low' : userStats.currentRTP > 97 ? 'rtp-high' : 'rtp-normal'}">
+                        ${userStats.currentRTP}%
+                    </span>
+                </td>
+                <td>
+                    <input type="number" 
+                           class="rtp-target-input" 
+                           value="${userSettings.customRTP || 95.5}" 
+                           min="80" max="99" step="0.1"
+                           data-username="${user.username}">
+                    <span class="unit">%</span>
+                </td>
+                <td>${userStats.totalSpins}</td>
+                <td>
+                    <span class="consecutive-losses ${userStats.consecutiveLosses > 10 ? 'high-loss' : ''}">
+                        ${userStats.consecutiveLosses}
+                    </span>
+                </td>
+                <td>
+                    <input type="number" 
+                           class="force-loss-input" 
+                           value="${userSettings.forceLossSpins || 0}" 
+                           min="0" max="100"
+                           data-username="${user.username}">
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn small-btn" onclick="adminUI.saveUserRTPSettings('${user.username}')">Simpan</button>
+                        <button class="btn small-btn" onclick="adminUI.forceUserWin('${user.username}')">Paksa Menang</button>
+                        <button class="btn small-btn" onclick="adminUI.resetUserRTP('${user.username}')">Reset</button>
+                    </div>
+                    <div class="win-type-buttons">
+                        <button class="btn tiny-btn" onclick="adminUI.forceUserWin('${user.username}', 'small')">S</button>
+                        <button class="btn tiny-btn" onclick="adminUI.forceUserWin('${user.username}', 'medium')">M</button>
+                        <button class="btn tiny-btn" onclick="adminUI.forceUserWin('${user.username}', 'large')">L</button>
+                        <button class="btn tiny-btn" onclick="adminUI.forceUserWin('${user.username}', 'jackpot')">J</button>
+                    </div>
+                </td>
+            `;
+            
+            userRTPTableBody.appendChild(row);
+        });
+        
+        // Add CSS for RTP styling
+        this.addRTPStyling();
+    }
+    
+    calculateUserRTPStats(userLogs) {
+        const totalBets = userLogs.reduce((sum, log) => sum + (log.bet || 0), 0);
+        const totalWins = userLogs.reduce((sum, log) => sum + (log.win || 0), 0);
+        const totalSpins = userLogs.length;
+        
+        let consecutiveLosses = 0;
+        for (let i = userLogs.length - 1; i >= 0; i--) {
+            if (userLogs[i].win > 0) {
+                break;
+            }
+            consecutiveLosses++;
+        }
+        
+        const currentRTP = totalBets > 0 ? ((totalWins / totalBets) * 100).toFixed(1) : '0.0';
+        
+        return {
+            currentRTP: parseFloat(currentRTP),
+            totalSpins,
+            consecutiveLosses,
+            totalBets,
+            totalWins
+        };
+    }
+    
+    addRTPStyling() {
+        if (!document.getElementById('rtp-styling')) {
+            const style = document.createElement('style');
+            style.id = 'rtp-styling';
+            style.textContent = `
+                .rtp-low { color: #ff4444; font-weight: bold; }
+                .rtp-normal { color: #ffaa44; }
+                .rtp-high { color: #44ff44; }
+                .high-loss { color: #ff4444; font-weight: bold; }
+                
+                .user-rtp-control-table {
+                    width: 100%;
+                    margin-top: 15px;
+                }
+                
+                .user-rtp-control-table th,
+                .user-rtp-control-table td {
+                    padding: 8px;
+                    text-align: center;
+                    border: 1px solid var(--border-color);
+                }
+                
+                .action-buttons {
+                    display: flex;
+                    gap: 5px;
+                    margin-bottom: 5px;
+                    flex-wrap: wrap;
+                }
+                
+                .win-type-buttons {
+                    display: flex;
+                    gap: 2px;
+                    justify-content: center;
+                }
+                
+                .tiny-btn {
+                    padding: 2px 6px;
+                    font-size: 10px;
+                    min-width: 20px;
+                }
+                
+                .rtp-target-input,
+                .force-loss-input {
+                    width: 60px;
+                    padding: 4px;
+                    margin: 2px;
+                }
+                
+                .rtp-global-controls,
+                .rtp-user-controls,
+                .rtp-quick-actions {
+                    margin-bottom: 20px;
+                    padding: 15px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
+                }
+                
+                .quick-action-buttons {
+                    display: flex;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                }
+                
+                .user-rtp-search {
+                    display: flex;
+                    gap: 10px;
+                    margin-bottom: 15px;
+                }
+                
+                .user-rtp-search input {
+                    flex: 1;
+                    padding: 8px;
+                }
+                
+                /* Warning style untuk RTP rendah */
+                .rtp-target-input[value*="8"]:not([value*="9"]) {
+                    background-color: rgba(255, 68, 68, 0.2);
+                    border-color: #ff4444;
+                }
+                
+                .force-loss-input:not([value="0"]) {
+                    background-color: rgba(255, 68, 68, 0.1);
+                    border-color: #ff6666;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+    }
+    
+    // RTP Control Methods
+    saveUserRTPSettings(username) {
+        const targetRTPInput = document.querySelector(`input.rtp-target-input[data-username="${username}"]`);
+        const forceLossInput = document.querySelector(`input.force-loss-input[data-username="${username}"]`);
+        
+        if (!targetRTPInput || !forceLossInput) {
+            this.showNotification('Input elements not found!', 'error');
+            return;
+        }
+        
+        const targetRTP = parseFloat(targetRTPInput.value);
+        const forceLossSpins = parseInt(forceLossInput.value);
+        
+        // Validate input
+        if (targetRTP < 80 || targetRTP > 99) {
+            this.showNotification('RTP harus antara 80% - 99%!', 'error');
+            return;
+        }
+        
+        if (forceLossSpins < 0 || forceLossSpins > 100) {
+            this.showNotification('Force loss spins harus antara 0 - 100!', 'error');
+            return;
+        }
+        
+        // Update user RTP settings
+        if (!this.userRTPSettings[username]) {
+            this.userRTPSettings[username] = {};
+        }
+        
+        this.userRTPSettings[username].customRTP = targetRTP;
+        this.userRTPSettings[username].forceLossSpins = forceLossSpins;
+        this.userRTPSettings[username].lastUpdated = new Date().toISOString();
+        
+        // Save to localStorage
+        localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+        
+        // Apply to slot machine if user is currently playing
+        if (window.slotMachine && window.slotMachine.currentUsername === username) {
+            window.slotMachine.setUserRTP(username, targetRTP, forceLossSpins);
+        }
+        
+        this.showNotification(`RTP settings saved for ${username}!`, 'success');
+    }
+    
+    forceUserWin(username, winType = 'medium') {
+        // Apply to slot machine if user is currently playing
+        if (window.slotMachine && window.slotMachine.currentUsername === username) {
+            window.slotMachine.forceUserWin(username, winType);
+            this.showNotification(`Forced ${winType} win for ${username}!`, 'success');
+        } else {
+            // Store for when user logs in
+            if (!this.userRTPSettings[username]) {
+                this.userRTPSettings[username] = {};
+            }
+            this.userRTPSettings[username].nextForcedWin = winType;
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            this.showNotification(`Scheduled ${winType} win for ${username}!`, 'info');
+        }
+    }
+    
+    resetUserRTP(username) {
+        if (confirm(`Reset RTP statistics for ${username}?`)) {
+            // Clear user RTP settings
+            delete this.userRTPSettings[username];
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            
+            // Reset in slot machine if user is currently playing
+            if (window.slotMachine && window.slotMachine.currentUsername === username) {
+                window.slotMachine.resetUserStatistics(username);
+            }
+            
+            // Clear user logs
+            this.gameLogs = this.gameLogs.filter(log => log.username !== username);
+            localStorage.setItem('gameLogs', JSON.stringify(this.gameLogs));
+            
+            this.updateUserRTPTable();
+            this.showNotification(`RTP reset for ${username}!`, 'success');
+        }
+    }
+    
+    updateGlobalRTP(targetRTP) {
+        // Update all users' target RTP
+        const activeUsers = this.users.filter(u => u.role === 'user');
+        
+        activeUsers.forEach(user => {
+            if (!this.userRTPSettings[user.username]) {
+                this.userRTPSettings[user.username] = {};
+            }
+            this.userRTPSettings[user.username].customRTP = targetRTP;
+        });
+        
+        localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+        
+        // Update admin settings
+        const adminSettings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+        adminSettings.globalRTP = targetRTP;
+        localStorage.setItem('adminSettings', JSON.stringify(adminSettings));
+        
+        this.updateUserRTPTable();
+        this.showNotification(`Global RTP set to ${targetRTP}%!`, 'info');
+    }
+    
+    applyAllRTPSettings() {
+        const globalRTP = parseFloat(document.getElementById('global-rtp').value);
+        const maxSpinsWithoutWin = parseInt(document.getElementById('max-spins-without-win').value);
+        const rtpAdjustmentSpeed = document.getElementById('rtp-adjustment-speed').value;
+        
+        // Update admin settings
+        const adminSettings = JSON.parse(localStorage.getItem('adminSettings') || '{}');
+        adminSettings.globalRTP = globalRTP;
+        adminSettings.maxSpinsWithoutWin = maxSpinsWithoutWin;
+        adminSettings.rtpAdjustmentSpeed = rtpAdjustmentSpeed;
+        adminSettings.rtpControlEnabled = document.getElementById('rtp-control-enabled').checked;
+        localStorage.setItem('adminSettings', JSON.stringify(adminSettings));
+        
+        // Apply to slot machine
+        if (window.slotMachine) {
+            window.slotMachine.loadAdminSettings();
+        }
+        
+        this.showNotification('RTP settings applied!', 'success');
+    }
+    
+    // Quick Action Methods
+    forceWinAllUsers() {
+        if (confirm('Force win for all active users?')) {
+            const activeUsers = this.users.filter(u => u.role === 'user');
+            
+            activeUsers.forEach(user => {
+                this.forceUserWin(user.username, 'medium');
+            });
+            
+            this.showNotification(`Forced win for ${activeUsers.length} users!`, 'success');
+        }
+    }
+    
+    resetAllUserRTP() {
+        if (confirm('Reset RTP for all users? This will clear all game statistics!')) {
+            // Clear all user RTP settings
+            this.userRTPSettings = {};
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            
+            // Clear all game logs
+            this.gameLogs = [];
+            localStorage.setItem('gameLogs', JSON.stringify(this.gameLogs));
+            
+            // Reset slot machine if active
+            if (window.slotMachine) {
+                window.slotMachine.resetUserStatistics();
+            }
+            
+            this.updateUserRTPTable();
+            this.updateDashboard();
+            this.showNotification('All user RTP statistics reset!', 'success');
+        }
+    }
+    
+    setLowRTPMode() {
+        if (confirm('Set all users to low RTP mode (85%)?')) {
+            this.updateGlobalRTP(85.0);
+            
+            // Also set higher force loss spins
+            const activeUsers = this.users.filter(u => u.role === 'user');
+            activeUsers.forEach(user => {
+                if (!this.userRTPSettings[user.username]) {
+                    this.userRTPSettings[user.username] = {};
+                }
+                this.userRTPSettings[user.username].forceLossSpins = 25;
+                this.userRTPSettings[user.username].maxSpinsWithoutWin = 30;
+            });
+            
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            this.updateUserRTPTable();
+            this.showNotification('Low RTP mode activated!', 'warning');
+        }
+    }
+    
+    setHighRTPMode() {
+        if (confirm('Set all users to high RTP mode (97%)?')) {
+            this.updateGlobalRTP(97.0);
+            
+            // Clear force loss spins
+            const activeUsers = this.users.filter(u => u.role === 'user');
+            activeUsers.forEach(user => {
+                if (!this.userRTPSettings[user.username]) {
+                    this.userRTPSettings[user.username] = {};
+                }
+                this.userRTPSettings[user.username].forceLossSpins = 0;
+                this.userRTPSettings[user.username].maxSpinsWithoutWin = 10;
+            });
+            
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            this.updateUserRTPTable();
+            this.showNotification('High RTP mode activated!', 'success');
+        }
+    }
+    
+    toggleRTPControls(enabled) {
+        const rtpControlSections = document.querySelectorAll('.rtp-user-controls, .rtp-quick-actions');
+        rtpControlSections.forEach(section => {
+            section.style.display = enabled ? 'block' : 'none';
+        });
+    }
+    
+    // Existing methods (unchanged)
     setupUserManagement() {
         // Search users
         const searchUsersBtn = document.getElementById('search-users-btn');
@@ -224,7 +764,10 @@ class AdminUI {
             timeCell.textContent = this.formatDateTime(log.timestamp);
             
             const userCell = document.createElement('td');
-            userCell.textContent = log.username || 'Unknown';
+            userCell.innerHTML = `
+                <strong>${log.username || 'Unknown'}</strong>
+                ${log.rtp ? `<br><small>RTP: ${log.rtp.toFixed(1)}%</small>` : ''}
+            `;
             
             const activityCell = document.createElement('td');
             activityCell.textContent = log.type || 'Spin';
@@ -251,55 +794,6 @@ class AdminUI {
         });
     }
     
-    updateUserRTPTable() {
-        const userRTPTableBody = document.getElementById('user-rtp-table-body');
-        if (!userRTPTableBody) return;
-        
-        userRTPTableBody.innerHTML = '';
-        
-        // Get users with game activity
-        const activeUsers = this.users.filter(u => u.role === 'user');
-        
-        activeUsers.forEach(user => {
-            const userLogs = this.gameLogs.filter(log => log.username === user.username);
-            const userRTP = this.calculateUserRTP(userLogs);
-            
-            const row = document.createElement('tr');
-            
-            row.innerHTML = `
-                <td>${user.username}</td>
-                <td>${userRTP}%</td>
-                <td>
-                    <input type="number" value="${userRTP}" min="1" max="99" step="0.1" data-username="${user.username}">
-                    <span class="unit">%</span>
-                </td>
-                <td>
-                    <select data-username="${user.username}">
-                        <option value="">Tidak Ada</option>
-                        <option value="win-small">Menang Kecil</option>
-                        <option value="win-medium">Menang Sedang</option>
-                        <option value="win-large">Menang Besar</option>
-                        <option value="jackpot">Jackpot</option>
-                    </select>
-                </td>
-                <td>
-                    <button class="btn small-btn" onclick="adminUI.saveUserRTP('${user.username}')">Simpan</button>
-                </td>
-            `;
-            
-            userRTPTableBody.appendChild(row);
-        });
-    }
-    
-    calculateUserRTP(userLogs) {
-        const totalBets = userLogs.reduce((sum, log) => sum + (log.bet || 0), 0);
-        const totalWins = userLogs.reduce((sum, log) => sum + (log.win || 0), 0);
-        
-        if (totalBets === 0) return 95.5;
-        
-        return ((totalWins / totalBets) * 100).toFixed(1);
-    }
-    
     renderUsersTable() {
         const usersTableBody = document.getElementById('users-table-body');
         if (!usersTableBody) return;
@@ -307,28 +801,35 @@ class AdminUI {
         usersTableBody.innerHTML = '';
         
         this.users.forEach(user => {
+            const userStats = this.calculateUserRTPStats(this.gameLogs.filter(log => log.username === user.username));
+            const userSettings = this.userRTPSettings[user.username] || {};
+            
             const row = document.createElement('tr');
             
             row.innerHTML = `
                 <td>${user.id}</td>
-                <td>${user.username}</td>
+                <td>
+                    <strong>${user.username}</strong>
+                    ${userSettings.customRTP ? `<br><small>Target RTP: ${userSettings.customRTP}%</small>` : ''}
+                </td>
                 <td>${user.email || 'N/A'}</td>
                 <td>${this.formatCurrency(user.balance || 0)}</td>
-                <td>${this.getUserSpinCount(user.username)}</td>
+                <td>
+                    ${userStats.totalSpins}
+                    ${userStats.currentRTP > 0 ? `<br><small>RTP: ${userStats.currentRTP}%</small>` : ''}
+                </td>
                 <td>${this.formatDate(user.joinDate || new Date())}</td>
                 <td><span class="status ${user.status || 'active'}">${user.status === 'inactive' ? 'Diblokir' : 'Aktif'}</span></td>
                 <td>
                     <button class="btn small-btn edit-btn">Edit</button>
                     <button class="btn small-btn delete-btn">Hapus</button>
+                    <br>
+                    <button class="btn tiny-btn" onclick="adminUI.forceUserWin('${user.username}')">Force Win</button>
                 </td>
             `;
             
             usersTableBody.appendChild(row);
         });
-    }
-    
-    getUserSpinCount(username) {
-        return this.gameLogs.filter(log => log.username === username).length;
     }
     
     renderLogsTable() {
@@ -346,7 +847,11 @@ class AdminUI {
             row.innerHTML = `
                 <td>${log.id || (index + 1)}</td>
                 <td>${this.formatDateTime(log.timestamp)}</td>
-                <td>${log.username || 'Unknown'}</td>
+                <td>
+                    <strong>${log.username || 'Unknown'}</strong>
+                    ${log.rtp ? `<br><small>RTP: ${log.rtp.toFixed(1)}%</small>` : ''}
+                    ${log.targetRTP ? `<br><small>Target: ${log.targetRTP}%</small>` : ''}
+                </td>
                 <td>${log.type || 'Spin'}</td>
                 <td>${this.formatCurrency(log.bet || 0)}</td>
                 <td class="${log.win > 0 ? 'win' : 'loss'}">
@@ -354,7 +859,10 @@ class AdminUI {
                 </td>
                 <td>${this.formatCurrency(log.balanceBefore || 0)}</td>
                 <td>${this.formatCurrency(log.balanceAfter || 0)}</td>
-                <td>${log.combination || 'N/A'}</td>
+                <td>
+                    ${log.combination || 'N/A'}
+                    ${log.spinsSinceLastWin ? `<br><small>No Win: ${log.spinsSinceLastWin}</small>` : ''}
+                </td>
             `;
             
             logsTableBody.appendChild(row);
@@ -423,7 +931,7 @@ class AdminUI {
         const cells = row.children;
         const userData = {
             id: cells[0].textContent,
-            username: cells[1].textContent,
+            username: cells[1].textContent.split('\n')[0],
             email: cells[2].textContent,
             balance: parseFloat(cells[3].textContent.replace(/[^\d]/g, '')),
             status: cells[6].querySelector('.status').classList.contains('active') ? 'active' : 'inactive'
@@ -433,13 +941,18 @@ class AdminUI {
     }
     
     deleteUser(row) {
-        const username = row.children[1].textContent;
+        const username = row.children[1].textContent.split('\n')[0];
         
         if (confirm(`Apakah Anda yakin ingin menghapus pengguna ${username}?`)) {
             this.users = this.users.filter(u => u.username !== username);
             localStorage.setItem('users', JSON.stringify(this.users));
             
+            // Also delete user RTP settings
+            delete this.userRTPSettings[username];
+            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
+            
             this.renderUsersTable();
+            this.updateUserRTPTable();
             this.showNotification('Pengguna berhasil dihapus!', 'success');
         }
     }
@@ -487,7 +1000,7 @@ class AdminUI {
         // Close modal
         document.getElementById('user-modal').style.display = 'none';
         
-        // Refresh table
+        // Refresh tables
         this.renderUsersTable();
         this.updateUserRTPTable();
         
@@ -515,10 +1028,20 @@ class AdminUI {
             forceWinEnabled: document.getElementById('force-win-enabled')?.checked || false,
             winFrequency: parseInt(document.getElementById('win-frequency')?.value || 30),
             defaultWinAmount: document.getElementById('force-win-amount')?.value || 'medium',
-            forceWinAfterSpins: parseInt(document.getElementById('force-win-spins')?.value || 10)
+            forceWinAfterSpins: parseInt(document.getElementById('force-win-spins')?.value || 10),
+            rtpControlEnabled: document.getElementById('rtp-control-enabled')?.checked || false,
+            globalRTP: parseFloat(document.getElementById('global-rtp')?.value || 95.5),
+            rtpAdjustmentSpeed: document.getElementById('rtp-adjustment-speed')?.value || 'normal',
+            maxSpinsWithoutWin: parseInt(document.getElementById('max-spins-without-win')?.value || 20)
         };
         
         localStorage.setItem('adminSettings', JSON.stringify(settings));
+        
+        // Apply to slot machine if active
+        if (window.slotMachine) {
+            window.slotMachine.loadAdminSettings();
+        }
+        
         this.showNotification('Pengaturan berhasil diperbarui!', 'info');
     }
     
@@ -553,25 +1076,6 @@ class AdminUI {
         this.showNotification('Pengaturan game berhasil disimpan!', 'success');
     }
     
-    saveUserRTP(username) {
-        const row = document.querySelector(`input[data-username="${username}"]`).closest('tr');
-        const rtpInput = row.querySelector('input[type="number"]');
-        const nextSpinSelect = row.querySelector('select');
-        
-        const settings = {
-            username: username,
-            customRTP: parseFloat(rtpInput.value),
-            nextSpin: nextSpinSelect.value
-        };
-        
-        // Save user-specific settings
-        let userSettings = JSON.parse(localStorage.getItem('userSettings') || '{}');
-        userSettings[username] = settings;
-        localStorage.setItem('userSettings', JSON.stringify(userSettings));
-        
-        this.showNotification(`Pengaturan untuk ${username} berhasil disimpan!`, 'success');
-    }
-    
     // Logs management methods
     filterLogs() {
         this.renderLogsTable();
@@ -582,7 +1086,7 @@ class AdminUI {
         const logs = this.getFilteredLogs();
         
         // Create CSV content
-        const headers = ['ID', 'Tanggal & Waktu', 'Username', 'Aktivitas', 'Taruhan', 'Hasil', 'Saldo Sebelum', 'Saldo Sesudah', 'Kombinasi'];
+        const headers = ['ID', 'Tanggal & Waktu', 'Username', 'Aktivitas', 'Taruhan', 'Hasil', 'Saldo Sebelum', 'Saldo Sesudah', 'Kombinasi', 'RTP', 'Target RTP'];
         const csvContent = [
             headers.join(','),
             ...logs.map(log => [
@@ -594,7 +1098,9 @@ class AdminUI {
                 log.win || 0,
                 log.balanceBefore || 0,
                 log.balanceAfter || 0,
-                log.combination || ''
+                log.combination || '',
+                log.rtp || '',
+                log.targetRTP || ''
             ].join(','))
         ].join('\n');
         
@@ -614,6 +1120,7 @@ class AdminUI {
         setInterval(() => {
             this.loadUsers();
             this.loadGameLogs();
+            this.loadUserRTPSettings();
             this.updateDashboard();
         }, 30000);
         
@@ -631,54 +1138,6 @@ class AdminUI {
             const increment = Math.floor(Math.random() * 1000) + 100;
             el.textContent = this.formatCurrency(current + increment);
         });
-    }
-    
-    // Game simulation for demo
-    simulateGameActivity() {
-        const users = this.users.filter(u => u.role === 'user');
-        if (users.length === 0) return;
-        
-        const randomUser = users[Math.floor(Math.random() * users.length)];
-        const bets = [10000, 25000, 50000, 100000, 250000];
-        const randomBet = bets[Math.floor(Math.random() * bets.length)];
-        const isWin = Math.random() < 0.3; // 30% chance to win
-        const winMultiplier = Math.random() < 0.1 ? 50 : (Math.random() < 0.3 ? 10 : 3); // Rare big wins
-        
-        const log = {
-            id: this.gameLogs.length + 1,
-            timestamp: new Date().toISOString(),
-            username: randomUser.username,
-            type: 'Spin',
-            bet: randomBet,
-            win: isWin ? randomBet * winMultiplier : 0,
-            balanceBefore: randomUser.balance,
-            balanceAfter: randomUser.balance + (isWin ? randomBet * winMultiplier : -randomBet),
-            combination: this.generateRandomCombination()
-        };
-        
-        this.gameLogs.push(log);
-        
-        // Update user balance
-        randomUser.balance = log.balanceAfter;
-        
-        // Save to localStorage
-        localStorage.setItem('gameLogs', JSON.stringify(this.gameLogs));
-        localStorage.setItem('users', JSON.stringify(this.users));
-        
-        // Update displays
-        this.updateRecentActivity();
-        this.updateStats();
-    }
-    
-    generateRandomCombination() {
-        const symbols = ['Seven', 'Bar-Triple', 'Bar-Double', 'Bar-Single', 'Cherry'];
-        const combination = [];
-        
-        for (let i = 0; i < 3; i++) {
-            combination.push(symbols[Math.floor(Math.random() * symbols.length)]);
-        }
-        
-        return combination.join('-');
     }
     
     // Utility methods
@@ -744,62 +1203,11 @@ class AdminUI {
             }, 300);
         }, 3000);
     }
-    
-    // Initialize demo data if needed
-    initializeDemoData() {
-        // Add some demo game logs if none exist
-        if (this.gameLogs.length === 0) {
-            const demoLogs = [
-                {
-                    id: 1,
-                    timestamp: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
-                    username: 'user',
-                    type: 'Spin',
-                    bet: 50000,
-                    win: 150000,
-                    balanceBefore: 400000,
-                    balanceAfter: 500000,
-                    combination: 'Bar-Triple-Bar-Triple-Bar-Triple'
-                },
-                {
-                    id: 2,
-                    timestamp: new Date(Date.now() - 240000).toISOString(), // 4 minutes ago
-                    username: 'user',
-                    type: 'Spin',
-                    bet: 25000,
-                    win: 0,
-                    balanceBefore: 500000,
-                    balanceAfter: 475000,
-                    combination: 'Cherry-Seven-Bar-Single'
-                }
-            ];
-            
-            this.gameLogs = demoLogs;
-            localStorage.setItem('gameLogs', JSON.stringify(demoLogs));
-        }
-    }
-    
-    // Start demo mode (for testing)
-    startDemoMode() {
-        this.initializeDemoData();
-        
-        // Simulate game activity every 10-30 seconds
-        setInterval(() => {
-            if (Math.random() < 0.7) { // 70% chance to simulate activity
-                this.simulateGameActivity();
-            }
-        }, Math.random() * 20000 + 10000); // Random interval between 10-30 seconds
-    }
 }
 
 // Initialize AdminUI when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     window.adminUI = new AdminUI();
-    
-    // Start demo mode for testing (remove in production)
-    setTimeout(() => {
-        window.adminUI.startDemoMode();
-    }, 2000);
 });
 
 // Utility functions for global access
@@ -808,7 +1216,19 @@ window.adminUtils = {
     
     saveUserRTP: (username) => {
         if (window.adminUI) {
-            window.adminUI.saveUserRTP(username);
+            window.adminUI.saveUserRTPSettings(username);
+        }
+    },
+    
+    forceUserWin: (username, winType = 'medium') => {
+        if (window.adminUI) {
+            window.adminUI.forceUserWin(username, winType);
+        }
+    },
+    
+    resetUserRTP: (username) => {
+        if (window.adminUI) {
+            window.adminUI.resetUserRTP(username);
         }
     },
     
