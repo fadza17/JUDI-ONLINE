@@ -1,4 +1,4 @@
-// SlotMachine.js - Fixed dengan house edge control yang ketat
+// SlotMachine.js - FIXED VERSION dengan RTP Control yang benar
 
 class SlotMachine {
     constructor(config) {
@@ -22,28 +22,18 @@ class SlotMachine {
         // Progressive jackpot
         this.progressiveJackpot = config.jackpot ? config.jackpot.basePayout : 1000000;
         
-        // FIXED RTP Control System - HOUSE EDGE FIRST
-        this.targetRTP = 75.0; // DEFAULT SANGAT RENDAH
-        this.currentRTP = 75.0; // Start low, tidak naik mudah
+        // RTP Control System - FIXED
+        this.targetRTP = 95.5;
+        this.currentRTP = 95.5;
         this.totalBetAmount = 0;
         this.totalWinAmount = 0;
         this.spinsSinceLastWin = 0;
-        this.maxSpinsWithoutWin = 60; // Default 60 spins tanpa menang
-        this.rtpDecayFactor = 0.995; // RTP decay setiap spin untuk house edge
+        this.maxSpinsWithoutWin = 20;
         
-        // House edge protection
-        this.houseEdgeTarget = 25.0; // Target 25% house edge
-        this.emergencyMode = false;
-        this.forceLossSpins = 20; // Default force loss
-        this.antiWinStreak = 0; // Counter untuk mencegah winning streak
-        
-        // User-specific RTP settings
+        // User-specific settings
         this.userRTPSettings = {};
         this.currentUsername = null;
-        
-        // Admin forced results queue
-        this.forcedResultsQueue = [];
-        this.nextForcedResult = null;
+        this.forcedNextResult = null; // FIXED: Single forced result
         
         // Komponen game
         this.symbolManager = null;
@@ -55,29 +45,15 @@ class SlotMachine {
         this.onWin = null;
         this.onBalanceChange = null;
         this.onError = null;
-        this.onJackpot = null;
-        this.onRTPChange = null;
         
-        // Admin mode settings
+        // Admin settings
         this.adminSettings = null;
         this.nextForcedResult = null;
 
         // username untuk tracking
         this.currentUsername = null;
-        // Container element
-        this.container = null;
         
-        // Win control settings dengan bias ke loss
-        this.winControlEnabled = false;
-        this.forceWinAfterSpins = 60; // Increased dari 15 ke 60
-        
-        // Session tracking untuk prevent RTP manipulation
-        this.sessionStartTime = Date.now();
-        this.sessionSpins = 0;
-        this.sessionBets = 0;
-        this.sessionWins = 0;
-        
-        // Inisialisasi komponen
+        // Inisialisasi
         this.init();
         
         // Set global reference
@@ -97,24 +73,9 @@ class SlotMachine {
             this.reels.push(reel);
         }
         
-        // Load pengaturan admin dan user RTP
+        // Load settings
         this.loadAdminSettings();
         this.loadUserRTPSettings();
-        
-        // Initialize house edge protection
-        this.initializeHouseEdgeProtection();
-    }
-    
-    initializeHouseEdgeProtection() {
-        // Setup automatic house edge protection
-        this.houseEdgeProtectionInterval = setInterval(() => {
-            this.enforceHouseEdge();
-        }, 30000); // Check setiap 30 detik
-        
-        // Setup RTP decay untuk natural house edge
-        this.rtpDecayInterval = setInterval(() => {
-            this.applyRTPDecay();
-        }, 60000); // Apply decay setiap menit
     }
     
     loadAdminSettings() {
@@ -122,22 +83,15 @@ class SlotMachine {
         if (adminSettings) {
             this.adminSettings = JSON.parse(adminSettings);
         } else {
-            // DEFAULT SETTINGS DENGAN HOUSE EDGE TINGGI
             this.adminSettings = {
                 forceWinEnabled: false,
-                winFrequency: 8, // Sangat rendah (8%)
-                defaultWinAmount: 'small',
-                forceWinAfterSpins: 60, // Tinggi
+                winFrequency: 30,
+                defaultWinAmount: 'medium',
+                forceWinAfterSpins: 15,
                 rtpControlEnabled: true,
-                minRTP: 65.0, // Sangat rendah
-                maxRTP: 80.0, // Hard cap
-                rtpAdjustmentSpeed: 'ultra_slow',
-                houseEdgeMode: true,
-                emergencyRTPThreshold: 82.0
+                globalRTP: 95.5
             };
         }
-        
-        this.applyAdminSettings();
     }
     
     loadUserRTPSettings() {
@@ -147,21 +101,11 @@ class SlotMachine {
         }
     }
     
-    applyAdminSettings() {
-        this.winControlEnabled = this.adminSettings.forceWinEnabled;
-        this.forceWinAfterSpins = this.adminSettings.forceWinAfterSpins || 60;
-        this.maxSpinsWithoutWin = this.adminSettings.forceWinAfterSpins || 60;
-        
-        // FIXED: Set target RTP dari admin settings, tapi cap di 80%
-        if (this.adminSettings.globalRTPTarget) {
-            this.targetRTP = Math.min(this.adminSettings.globalRTPTarget, 80.0);
-        }
-    }
-    
     setUsername(username) {
         this.currentUsername = username;
+        console.log(`Setting username: ${username}`);
         
-        // Load saldo dari localStorage
+        // Load user balance
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         const user = users.find(u => u.username === username);
         if (user) {
@@ -174,38 +118,21 @@ class SlotMachine {
         // Load user-specific RTP settings
         this.loadUserSpecificRTP(username);
         this.loadUserStatistics(username);
-        
-        // Initialize user dengan default rendah jika belum ada
-        this.initializeUserDefaults(username);
-    }
-    
-    initializeUserDefaults(username) {
-        if (!this.userRTPSettings[username]) {
-            this.userRTPSettings[username] = {
-                customRTP: 75.0, // Default rendah
-                forceLossSpins: 20,
-                maxSpinsWithoutWin: 60,
-                lastUpdated: new Date().toISOString(),
-                houseEdgeMode: true,
-                emergencyModeActive: false
-            };
-            
-            // Save ke localStorage
-            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
-        }
     }
     
     loadUserSpecificRTP(username) {
         if (this.userRTPSettings[username]) {
             const userSettings = this.userRTPSettings[username];
+            this.targetRTP = userSettings.customRTP || 95.5;
+            this.maxSpinsWithoutWin = userSettings.maxSpinsWithoutWin || 20;
             
-            // FIXED: Hard cap RTP di 80%
-            this.targetRTP = Math.min(userSettings.customRTP || 75.0, 80.0);
-            this.forceLossSpins = userSettings.forceLossSpins || 20;
-            this.maxSpinsWithoutWin = userSettings.maxSpinsWithoutWin || 60;
-            this.emergencyMode = userSettings.emergencyModeActive || false;
+            // FIXED: Check for forced next result
+            if (userSettings.nextForcedResult) {
+                this.forcedNextResult = userSettings.nextForcedResult;
+                console.log(`Loaded forced result for ${username}: ${this.forcedNextResult}`);
+            }
             
-            console.log(`Loaded RTP settings for ${username}: ${this.targetRTP}% (capped at 80%)`);
+            console.log(`Loaded RTP settings for ${username}: Target RTP ${this.targetRTP}%`);
         }
     }
     
@@ -218,21 +145,9 @@ class SlotMachine {
             this.totalWinAmount = userLogs.reduce((sum, log) => sum + (log.win || 0), 0);
             this.totalSpins = userLogs.length;
             
-            // FIXED: Calculate RTP dengan house edge protection
+            // Calculate current RTP
             if (this.totalBetAmount > 0) {
-                let calculatedRTP = (this.totalWinAmount / this.totalBetAmount) * 100;
-                
-                // House edge protection - jika RTP terlalu tinggi, apply correction
-                if (calculatedRTP > this.targetRTP) {
-                    const excess = calculatedRTP - this.targetRTP;
-                    calculatedRTP = this.targetRTP + (excess * 0.5); // Reduce excess by half
-                    
-                    // Log correction
-                    console.log(`RTP corrected for house edge: ${calculatedRTP.toFixed(1)}%`);
-                }
-                
-                // Hard cap
-                this.currentRTP = Math.min(calculatedRTP, 80.0);
+                this.currentRTP = (this.totalWinAmount / this.totalBetAmount) * 100;
             }
             
             // Calculate consecutive losses
@@ -247,180 +162,72 @@ class SlotMachine {
             this.spinsSinceLastWin = consecutiveLosses;
         }
         
-        console.log(`User ${username} stats - RTP: ${this.currentRTP.toFixed(2)}% (Target: ${this.targetRTP}%), House Edge: ${(100 - this.currentRTP).toFixed(2)}%`);
+        console.log(`User ${username} stats - Current RTP: ${this.currentRTP.toFixed(2)}%, Target: ${this.targetRTP}%`);
     }
     
-    // FIXED: Enhanced RTP calculation dengan house edge bias
+    // FIXED: Proper RTP-based win determination
     shouldWinBasedOnRTP() {
-        // Emergency mode - always lose
-        if (this.emergencyMode || this.forceLossSpins > 0) {
-            if (this.forceLossSpins > 0) {
-                this.forceLossSpins--;
-            }
-            console.log(`Force loss active: ${this.forceLossSpins} spins remaining`);
-            return false;
-        }
+        console.log('=== RTP CHECK ===');
+        console.log(`Current RTP: ${this.currentRTP.toFixed(2)}%`);
+        console.log(`Target RTP: ${this.targetRTP}%`);
+        console.log(`Consecutive losses: ${this.consecutiveLosses}`);
+        console.log(`Forced result: ${this.forcedNextResult}`);
         
-        // Anti-win streak protection
-        if (this.antiWinStreak > 0) {
-            this.antiWinStreak--;
-            console.log(`Anti-win streak: ${this.antiWinStreak} spins remaining`);
-            return false;
-        }
-        
-        // Check house edge
-        const currentHouseEdge = 100 - this.currentRTP;
-        const targetHouseEdge = 100 - this.targetRTP;
-        
-        // Jika house edge di bawah target, kurangi win chance drastis
-        if (currentHouseEdge < targetHouseEdge) {
-            const houseEdgeDeficit = targetHouseEdge - currentHouseEdge;
+        // FIXED: Check for forced result first
+        if (this.forcedNextResult) {
+            console.log(`Using forced result: ${this.forcedNextResult}`);
+            const shouldWin = this.forcedNextResult !== 'lose';
             
-            console.log(`House edge deficit: ${houseEdgeDeficit.toFixed(1)}%`);
+            // Clear forced result after using it
+            this.forcedNextResult = null;
             
-            if (houseEdgeDeficit > 5) {
-                return Math.random() < 0.02; // 2% chance
-            } else if (houseEdgeDeficit > 2) {
-                return Math.random() < 0.05; // 5% chance
-            } else {
-                return Math.random() < 0.08; // 8% chance
+            // Also clear from user settings
+            if (this.userRTPSettings[this.currentUsername]) {
+                delete this.userRTPSettings[this.currentUsername].nextForcedResult;
+                localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
             }
+            
+            return shouldWin;
         }
         
-        // Force win hanya jika consecutive losses sangat tinggi
-        if (this.spinsSinceLastWin >= this.maxSpinsWithoutWin && this.spinsSinceLastWin > 50) {
-            console.log(`Force win after ${this.spinsSinceLastWin} consecutive losses`);
+        // Force win if too many consecutive losses
+        if (this.consecutiveLosses >= this.maxSpinsWithoutWin) {
+            console.log(`Force win due to consecutive losses: ${this.consecutiveLosses}`);
             return true;
         }
         
-        // Normal calculation dengan house edge bias
+        // RTP-based calculation
         const rtpDifference = this.currentRTP - this.targetRTP;
-        let winProbability = 0.10; // Base 10% chance (rendah)
+        let winProbability = 0.15; // Base 15%
         
         if (rtpDifference < -10) {
-            winProbability = 0.20; // 20% jika RTP sangat rendah
+            winProbability = 0.8; // High chance if RTP very low
         } else if (rtpDifference < -5) {
-            winProbability = 0.15; // 15%
+            winProbability = 0.6; // Good chance if RTP low
+        } else if (rtpDifference < -2) {
+            winProbability = 0.4; // Medium chance if RTP slightly low
         } else if (rtpDifference > 5) {
-            winProbability = 0.02; // 2% jika RTP tinggi
+            winProbability = 0.05; // Low chance if RTP high
         } else if (rtpDifference > 2) {
-            winProbability = 0.05; // 5%
+            winProbability = 0.1; // Reduced chance if RTP slightly high
         }
         
-        // Session protection - kurangi win chance seiring waktu
-        const sessionMinutes = (Date.now() - this.sessionStartTime) / 60000;
-        if (sessionMinutes > 30) {
-            winProbability *= 0.8; // Reduce 20% after 30 minutes
-        }
+        console.log(`RTP difference: ${rtpDifference.toFixed(2)}%, Win probability: ${(winProbability * 100).toFixed(1)}%`);
         
-        return Math.random() < winProbability;
+        const shouldWin = Math.random() < winProbability;
+        console.log(`Random result: ${shouldWin ? 'WIN' : 'LOSE'}`);
+        
+        return shouldWin;
     }
     
-    // FIXED: Enhanced house edge enforcement
-    enforceHouseEdge() {
-        const currentHouseEdge = 100 - this.currentRTP;
-        const targetHouseEdge = 100 - this.targetRTP;
-        
-        // Jika house edge terlalu rendah, activate emergency mode
-        if (currentHouseEdge < targetHouseEdge - 3) {
-            this.activateEmergencyMode();
-        }
-        
-        // Jika RTP terlalu tinggi, force correction
-        if (this.currentRTP > this.targetRTP + 2) {
-            this.applyRTPCorrection();
-        }
-        
-        // Monitor session untuk prevent manipulation
-        this.monitorSession();
-    }
-    
-    activateEmergencyMode() {
-        this.emergencyMode = true;
-        this.forceLossSpins = Math.max(this.forceLossSpins, 50); // Minimum 50 force losses
-        
-        console.log(`EMERGENCY MODE ACTIVATED - House edge too low: ${(100 - this.currentRTP).toFixed(1)}%`);
-        
-        // Update user settings
-        if (this.currentUsername) {
-            if (!this.userRTPSettings[this.currentUsername]) {
-                this.userRTPSettings[this.currentUsername] = {};
-            }
-            this.userRTPSettings[this.currentUsername].emergencyModeActive = true;
-            this.userRTPSettings[this.currentUsername].forceLossSpins = this.forceLossSpins;
-            localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
-        }
-        
-        // Callback untuk notify admin
-        if (this.onRTPChange) {
-            this.onRTPChange({
-                currentRTP: this.currentRTP,
-                targetRTP: this.targetRTP,
-                emergencyMode: true,
-                houseEdge: 100 - this.currentRTP
-            });
-        }
-    }
-    
-    applyRTPCorrection() {
-        // Reduce current RTP gradually towards target
-        const rtpExcess = this.currentRTP - this.targetRTP;
-        const correctionFactor = Math.min(rtpExcess * 0.1, 2.0); // Max 2% correction per call
-        
-        this.currentRTP = Math.max(this.currentRTP - correctionFactor, this.targetRTP);
-        
-        // Add force loss spins based on correction
-        this.forceLossSpins += Math.floor(correctionFactor * 5);
-        
-        console.log(`RTP corrected by ${correctionFactor.toFixed(1)}%, new RTP: ${this.currentRTP.toFixed(1)}%`);
-    }
-    
-    applyRTPDecay() {
-        // Natural RTP decay untuk maintain house edge
-        if (this.currentRTP > this.targetRTP) {
-            this.currentRTP *= this.rtpDecayFactor;
-            this.currentRTP = Math.max(this.currentRTP, this.targetRTP);
-        }
-    }
-    
-    monitorSession() {
-        const sessionRTP = this.sessionBets > 0 ? (this.sessionWins / this.sessionBets) * 100 : 0;
-        
-        // Jika session RTP terlalu tinggi, apply immediate correction
-        if (sessionRTP > this.targetRTP + 5 && this.sessionSpins > 20) {
-            this.forceLossSpins += 20;
-            this.antiWinStreak = 10; // Prevent wins for next 10 spins
-            
-            console.log(`Session RTP too high (${sessionRTP.toFixed(1)}%) - Applied correction`);
-        }
-    }
-    
-    // Render slot machine ke container
-    renderTo(container) {
-        this.container = container;
-        container.innerHTML = '';
-        
-        // Render setiap reel
-        this.reels.forEach((reel, index) => {
-            const reelElement = document.createElement('div');
-            reelElement.className = 'reel';
-            reelElement.id = `reel${index + 1}`;
-            container.appendChild(reelElement);
-            
-            reel.renderTo(reelElement);
-        });
-        
-        return container;
-    }
-    
-    // FIXED: Main spin method dengan house edge control
+    // FIXED: Main spin method with proper RTP logic
     async spin() {
         if (this.isSpinning) {
             console.log('Already spinning');
             return;
         }
         
-        // Check saldo
+        // Check balance
         if (this.balance < this.bet) {
             if (this.onError) {
                 this.onError('Saldo tidak mencukupi');
@@ -430,43 +237,44 @@ class SlotMachine {
         
         this.isSpinning = true;
         this.totalSpins++;
-        this.sessionSpins++;
         this.spinsSinceLastWin++;
+        
+        console.log(`\n=== SPIN ${this.totalSpins} ===`);
+        console.log(`User: ${this.currentUsername}`);
+        console.log(`Bet: ${this.bet}`);
         
         // Update totals
         this.totalBetAmount += this.bet;
-        this.sessionBets += this.bet;
         
-        // Kurangi saldo
+        // Deduct balance
         this.updateBalance(-this.bet);
         
         // Update progressive jackpot
         this.updateProgressiveJackpot();
-        
-        console.log(`Spin #${this.totalSpins} - Bet: ${this.bet}, Current RTP: ${this.currentRTP.toFixed(1)}%, House Edge: ${(100 - this.currentRTP).toFixed(1)}%`);
         
         // Callback spin start
         if (this.onSpinStart) {
             this.onSpinStart();
         }
         
-        // FIXED: Determine result dengan house edge protection
+        // FIXED: Determine if should win
         const shouldWin = this.shouldWinBasedOnRTP();
-        console.log(`Win decision: ${shouldWin}, Force loss remaining: ${this.forceLossSpins}`);
         
         let result;
-        if (shouldWin && this.forceLossSpins === 0 && !this.emergencyMode) {
+        if (shouldWin) {
+            console.log('Generating WINNING result');
             result = this.generateWinningResult();
         } else {
+            console.log('Generating LOSING result');
             result = this.generateLosingResult();
         }
         
-        // Set hasil pada reels
+        // Set forced result on reels
         if (result.forced) {
             this.setForcedResult(result.symbols);
         }
         
-        // Mulai spin semua reels
+        // Start spinning all reels
         const spinPromises = this.reels.map((reel, index) => {
             return new Promise(resolve => {
                 setTimeout(() => {
@@ -475,22 +283,20 @@ class SlotMachine {
             });
         });
         
-        // Tunggu semua reels selesai
+        // Wait for all reels to complete
         await Promise.all(spinPromises);
         
-        // Evaluasi hasil
+        // Evaluate result
         const spinResult = this.evaluateResult();
         
-        // FIXED: Update statistics dengan house edge protection
+        // Update statistics
         this.updateRTPStatistics(spinResult);
         
-        // Handle kemenangan
+        // Handle win
         if (spinResult.totalWin > 0) {
             this.handleWin(spinResult);
             this.spinsSinceLastWin = 0;
-            
-            // Apply anti-win streak
-            this.antiWinStreak = this.calculateAntiWinStreak(spinResult.totalWin);
+            this.consecutiveLosses = 0;
         } else {
             this.consecutiveLosses++;
         }
@@ -505,114 +311,83 @@ class SlotMachine {
             this.onSpinComplete(spinResult);
         }
         
-        // Auto spin berikutnya
+        // Auto spin
         if (this.autoSpinEnabled && this.balance >= this.bet) {
             setTimeout(() => this.spin(), 1000);
         }
         
+        console.log(`Final result: ${spinResult.totalWin > 0 ? 'WIN' : 'LOSE'} - Amount: ${spinResult.totalWin}`);
+        
         return spinResult;
     }
     
-    // FIXED: Update RTP statistics dengan house edge bias
-    updateRTPStatistics(result) {
-        this.totalWinAmount += result.totalWin;
-        this.sessionWins += result.totalWin;
-        
-        // Calculate new RTP dengan house edge protection
-        if (this.totalBetAmount > 0) {
-            let calculatedRTP = (this.totalWinAmount / this.totalBetAmount) * 100;
-            
-            // FIXED: Apply house edge protection
-            if (calculatedRTP > this.targetRTP) {
-                const excess = calculatedRTP - this.targetRTP;
-                // Reduce excess more aggressively
-                calculatedRTP = this.targetRTP + (excess * 0.3); // Only 30% of excess allowed
-            }
-            
-            // Hard cap dengan margin
-            this.currentRTP = Math.min(calculatedRTP, Math.min(this.targetRTP + 2, 80.0));
-        }
-        
-        // Check emergency threshold
-        if (this.currentRTP > 82.0) {
-            this.activateEmergencyMode();
-        }
-        
-        // Callback RTP change
-        if (this.onRTPChange) {
-            this.onRTPChange({
-                currentRTP: this.currentRTP,
-                targetRTP: this.targetRTP,
-                totalSpins: this.totalSpins,
-                consecutiveLosses: this.consecutiveLosses,
-                houseEdge: 100 - this.currentRTP,
-                emergencyMode: this.emergencyMode
-            });
-        }
-        
-        console.log(`RTP Updated - Current: ${this.currentRTP.toFixed(2)}%, Target: ${this.targetRTP}%, House Edge: ${(100 - this.currentRTP).toFixed(2)}%`);
-    }
-    
-    calculateAntiWinStreak(winAmount) {
-        // Calculate anti-win streak based on win amount
-        const winMultiplier = winAmount / this.bet;
-        
-        if (winMultiplier > 10) {
-            return 15; // Large win = 15 spins anti-streak
-        } else if (winMultiplier > 5) {
-            return 10; // Medium win = 10 spins
-        } else if (winMultiplier > 2) {
-            return 5; // Small win = 5 spins
-        }
-        
-        return 2; // Minimal anti-streak
-    }
-    
-    // Generate winning result dengan win amount control
+    // FIXED: Generate winning result
     generateWinningResult() {
-        // Determine win type based on RTP needs
-        const rtpDifference = this.currentRTP - this.targetRTP;
-        let winType = 'small'; // Default ke small
+        const winType = this.forcedNextResult || this.determineWinType();
+        console.log(`Generating win type: ${winType}`);
         
-        // Only allow bigger wins jika RTP sangat rendah
-        if (rtpDifference < -10 && this.consecutiveLosses > 40) {
-            if (Math.random() < 0.1) winType = 'medium';
-            if (Math.random() < 0.02) winType = 'large';
-        } else if (rtpDifference < -5 && this.consecutiveLosses > 25) {
-            if (Math.random() < 0.05) winType = 'medium';
-        }
-        
-        console.log(`Generated winning result: ${winType} (RTP diff: ${rtpDifference.toFixed(1)}%)`);
-        return this.generateSpecificWin(winType);
-    }
-    
-    generateSpecificWin(winType) {
         const result = [];
-        let symbol;
+        let winSymbol;
         
         switch (winType) {
             case 'small':
-                symbol = this.symbolManager.getSymbol('cherry');
+            case 'win-small':
+                winSymbol = this.symbolManager.getSymbol('cherry');
                 break;
             case 'medium':
-                symbol = this.symbolManager.getSymbol('bar_single');
+            case 'win-medium':
+                winSymbol = this.symbolManager.getSymbol('bar_single');
                 break;
             case 'large':
-                symbol = this.symbolManager.getSymbol('bar_triple');
+            case 'win-large':
+                winSymbol = this.symbolManager.getSymbol('bar_triple');
                 break;
             case 'jackpot':
-                symbol = this.symbolManager.getSymbol('seven');
+                winSymbol = this.symbolManager.getSymbol('seven');
                 break;
             default:
-                symbol = this.symbolManager.getSymbol('cherry');
+                winSymbol = this.symbolManager.getSymbol('bar_single');
         }
         
-        // Generate minimal winning combination (3 symbols only)
+        if (!winSymbol) {
+            console.error('Win symbol not found, using random');
+            winSymbol = this.symbolManager.getRandomSymbol();
+        }
+        
+        // Generate winning combination
         for (let reel = 0; reel < this.reelsCount; reel++) {
             const reelSymbols = [];
             for (let row = 0; row < this.rowsCount; row++) {
-                if (reel < 3 && row === 1) { // Middle row, first 3 reels only
-                    reelSymbols.push(symbol.clone());
+                if (reel < 3 && row === 1) { // Middle row, first 3 reels
+                    reelSymbols.push(winSymbol.clone());
+                } else {
+                    reelSymbols.push(this.symbolManager.getRandomSymbol());
+                }
+            }
+            result.push(reelSymbols);
+        }
+        
+        return { forced: true, symbols: result, winType: winType };
+    }
+    
+    // FIXED: Generate losing result
+    generateLosingResult() {
+        const result = [];
+        
+        for (let reel = 0; reel < this.reelsCount; reel++) {
+            const reelSymbols = [];
+            for (let row = 0; row < this.rowsCount; row++) {
+                if (reel === 2 && row === 1) {
+                    // Make sure third reel middle doesn't match first two
+                    const firstSymbol = result[0] && result[0][1] ? result[0][1].id : null;
+                    const secondSymbol = result[1] && result[1][1] ? result[1][1].id : null;
+                    
+                    let symbol;
+                    do {
+                        symbol = this.symbolManager.getRandomSymbol();
+                    } while (symbol.id === firstSymbol || symbol.id === secondSymbol);
+                    
+                    reelSymbols.push(symbol);
                 } else {
                     reelSymbols.push(this.symbolManager.getRandomSymbol());
                 }
@@ -623,56 +398,27 @@ class SlotMachine {
         return { forced: true, symbols: result };
     }
     
-    // Generate losing result dengan bias ke blank
-    generateLosingResult() {
-        const result = [];
+    determineWinType() {
+        const rtpDifference = this.currentRTP - this.targetRTP;
         
-        for (let reel = 0; reel < this.reelsCount; reel++) {
-            const reelSymbols = [];
-            for (let row = 0; row < this.rowsCount; row++) {
-                let symbol;
-                
-                // High probability untuk blank symbols
-                if (Math.random() < 0.6) { // 60% chance blank
-                    symbol = this.symbolManager.getSymbol('blank');
-                } else {
-                    // Ensure no winning combinations
-                    do {
-                        symbol = this.symbolManager.getRandomSymbol();
-                    } while (this.wouldCreateWinningLine(result, reel, row, symbol));
-                }
-                
-                reelSymbols.push(symbol);
-            }
-            result.push(reelSymbols);
+        if (rtpDifference < -10) {
+            // Very low RTP, allow bigger wins
+            const rand = Math.random();
+            if (rand < 0.1) return 'large';
+            if (rand < 0.3) return 'medium';
+            return 'small';
+        } else if (rtpDifference < -5) {
+            // Low RTP, medium wins
+            const rand = Math.random();
+            if (rand < 0.2) return 'medium';
+            return 'small';
+        } else {
+            // Normal/high RTP, small wins only
+            return 'small';
         }
-        
-        console.log('Generated losing result with high blank probability');
-        return { forced: true, symbols: result };
     }
     
-    wouldCreateWinningLine(currentMatrix, reelIndex, rowIndex, newSymbol) {
-        // Enhanced check untuk prevent winning combinations
-        if (rowIndex === 1 && reelIndex < 3) { // Middle row check
-            let sameCount = 1;
-            for (let i = 0; i < reelIndex; i++) {
-                if (currentMatrix[i] && currentMatrix[i][1] && 
-                    currentMatrix[i][1].id === newSymbol.id && 
-                    newSymbol.id !== 'blank') {
-                    sameCount++;
-                }
-            }
-            
-            // Prevent 3+ matches
-            if (sameCount >= 3) {
-                return true;
-            }
-        }
-        
-        return false;
-    }
-    
-    // Set forced result pada reels
+    // Set forced result on reels
     setForcedResult(symbolsMatrix) {
         symbolsMatrix.forEach((reelSymbols, reelIndex) => {
             if (this.reels[reelIndex]) {
@@ -681,7 +427,7 @@ class SlotMachine {
         });
     }
     
-    // Evaluasi hasil dengan win amount control
+    // Evaluate result
     evaluateResult() {
         const matrix = this.getSymbolMatrix();
         const wins = [];
@@ -699,30 +445,20 @@ class SlotMachine {
             
             const lineWin = this.calculateLineWin(lineSymbols);
             if (lineWin.amount > 0) {
-                // Apply house edge factor to win amount
-                let adjustedAmount = lineWin.amount;
-                
-                // Reduce win amount if RTP too high
-                if (this.currentRTP > this.targetRTP) {
-                    const reductionFactor = 1 - ((this.currentRTP - this.targetRTP) / 100);
-                    adjustedAmount = Math.floor(adjustedAmount * Math.max(reductionFactor, 0.3));
-                }
-                
                 wins.push({
                     line: payline.id,
                     symbols: lineSymbols,
-                    amount: adjustedAmount,
+                    amount: lineWin.amount,
                     count: lineWin.count,
                     positions: payline.positions
                 });
-                totalWin += adjustedAmount;
+                totalWin += lineWin.amount;
                 
                 this.highlightWinningLine(payline.positions, lineWin.count);
                 
                 if (lineWin.isJackpot) {
                     isJackpot = true;
-                    // Reduced jackpot amount untuk house edge
-                    totalWin += Math.floor(this.progressiveJackpot * 0.8);
+                    totalWin += this.progressiveJackpot;
                 }
             }
         }
@@ -737,7 +473,7 @@ class SlotMachine {
         };
     }
     
-    // Calculate line win dengan reduced payouts
+    // Calculate line win
     calculateLineWin(symbols) {
         if (!symbols || symbols.length === 0) {
             return { amount: 0, count: 0 };
@@ -757,17 +493,13 @@ class SlotMachine {
             }
         }
         
-        // Minimum 3 untuk win
+        // Need at least 3 for a win
         if (count < 3) {
             return { amount: 0, count: 0 };
         }
         
-        // Calculate payout dengan house edge reduction
-        let basePayout = firstSymbol.getPayoutForCount(count);
-        
-        // Apply house edge factor
-        const houseEdgeFactor = 0.7; // Reduce all payouts by 30%
-        basePayout = Math.floor(basePayout * houseEdgeFactor);
+        // Calculate payout
+        const basePayout = firstSymbol.getPayoutForCount(count);
         
         return {
             amount: basePayout * this.bet,
@@ -779,6 +511,18 @@ class SlotMachine {
     // Get symbol matrix
     getSymbolMatrix() {
         return this.reels.map(reel => reel.getVisibleSymbols());
+    }
+    
+    // Update RTP statistics
+    updateRTPStatistics(result) {
+        this.totalWinAmount += result.totalWin;
+        
+        // Calculate new RTP
+        if (this.totalBetAmount > 0) {
+            this.currentRTP = (this.totalWinAmount / this.totalBetAmount) * 100;
+        }
+        
+        console.log(`RTP Updated - Current: ${this.currentRTP.toFixed(2)}%, Target: ${this.targetRTP}%`);
     }
     
     // Highlight winning line
@@ -802,20 +546,16 @@ class SlotMachine {
         });
     }
     
-    // Handle win dengan reduced celebration
+    // Handle win
     handleWin(result) {
         this.lastWin = result.totalWin;
-        this.consecutiveLosses = 0;
         
         // Update balance
         this.updateBalance(result.totalWin);
         
-        // Reset progressive jackpot jika jackpot
+        // Reset progressive jackpot if jackpot
         if (result.isJackpot) {
             this.progressiveJackpot = this.config.jackpot.basePayout;
-            if (this.onJackpot) {
-                this.onJackpot(result);
-            }
         }
         
         // Callback win
@@ -826,7 +566,7 @@ class SlotMachine {
         console.log(`WIN: ${result.totalWin} (${(result.totalWin / this.bet).toFixed(1)}x bet)`);
     }
     
-    // Save game log dengan house edge info
+    // Save game log
     saveGameLog(result) {
         const gameLogs = JSON.parse(localStorage.getItem('gameLogs') || '[]');
         
@@ -842,10 +582,7 @@ class SlotMachine {
             combination: this.generateCombinationString(result.matrix),
             rtp: this.currentRTP,
             targetRTP: this.targetRTP,
-            houseEdge: 100 - this.currentRTP,
-            spinsSinceLastWin: this.spinsSinceLastWin,
-            emergencyMode: this.emergencyMode,
-            forceLossSpins: this.forceLossSpins
+            spinsSinceLastWin: this.spinsSinceLastWin
         };
         
         gameLogs.push(logEntry);
@@ -894,68 +631,71 @@ class SlotMachine {
         }
     }
     
-    // Admin functions dengan house edge control
-    setUserRTP(username, targetRTP, forceLossSpins = 0, maxSpinsWithoutWin = 60) {
-        // Hard cap di 80%
-        targetRTP = Math.min(targetRTP, 80.0);
+    // FIXED: Admin methods for RTP control
+    setUserRTP(username, targetRTP, nextResult = null) {
+        console.log(`Setting user RTP: ${username} = ${targetRTP}%, Next result: ${nextResult}`);
         
         if (!this.userRTPSettings[username]) {
             this.userRTPSettings[username] = {};
         }
         
         this.userRTPSettings[username].customRTP = targetRTP;
-        this.userRTPSettings[username].forceLossSpins = forceLossSpins;
-        this.userRTPSettings[username].maxSpinsWithoutWin = maxSpinsWithoutWin;
+        
+        if (nextResult) {
+            this.userRTPSettings[username].nextForcedResult = nextResult;
+        }
+        
         this.userRTPSettings[username].lastUpdated = new Date().toISOString();
         
         localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
         
-        // Apply jika user saat ini
+        // Apply immediately if current user
         if (this.currentUsername === username) {
-            this.loadUserSpecificRTP(username);
+            this.targetRTP = targetRTP;
+            
+            if (nextResult) {
+                this.forcedNextResult = nextResult;
+                console.log(`Forced next result set for current user: ${nextResult}`);
+            }
         }
-        
-        console.log(`Set RTP for ${username}: ${targetRTP}% (capped at 80%), Force loss: ${forceLossSpins} spins`);
     }
     
-    // Force user to lose
-    forceUserLoss(username, spins) {
+    // FIXED: Force user win
+    forceUserWin(username, winType = 'medium') {
+        console.log(`Forcing win for ${username}: ${winType}`);
+        
         if (!this.userRTPSettings[username]) {
             this.userRTPSettings[username] = {};
         }
         
-        this.userRTPSettings[username].forceLossSpins = spins;
-        this.userRTPSettings[username].lastUpdated = new Date().toISOString();
-        
+        this.userRTPSettings[username].nextForcedResult = winType;
         localStorage.setItem('userRTPSettings', JSON.stringify(this.userRTPSettings));
         
+        // Apply immediately if current user
         if (this.currentUsername === username) {
-            this.forceLossSpins = spins;
+            this.forcedNextResult = winType;
+            console.log(`Forced result set for current user: ${winType}`);
         }
+    }
+    
+    // Render slot machine
+    renderTo(container) {
+        this.container = container;
+        container.innerHTML = '';
         
-        console.log(`Forced ${username} to lose for ${spins} spins`);
+        this.reels.forEach((reel, index) => {
+            const reelElement = document.createElement('div');
+            reelElement.className = 'reel';
+            reelElement.id = `reel${index + 1}`;
+            container.appendChild(reelElement);
+            
+            reel.renderTo(reelElement);
+        });
+        
+        return container;
     }
     
-    // Get statistics
-    getRTPStatistics() {
-        return {
-            currentRTP: this.currentRTP,
-            targetRTP: this.targetRTP,
-            houseEdge: 100 - this.currentRTP,
-            targetHouseEdge: 100 - this.targetRTP,
-            totalBetAmount: this.totalBetAmount,
-            totalWinAmount: this.totalWinAmount,
-            totalSpins: this.totalSpins,
-            consecutiveLosses: this.consecutiveLosses,
-            spinsSinceLastWin: this.spinsSinceLastWin,
-            forceLossSpins: this.forceLossSpins,
-            emergencyMode: this.emergencyMode,
-            sessionSpins: this.sessionSpins,
-            sessionRTP: this.sessionBets > 0 ? (this.sessionWins / this.sessionBets) * 100 : 0
-        };
-    }
-    
-    // Set bet dengan validation
+    // Utility methods
     setBet(amount) {
         if (amount >= this.config.minBet && amount <= this.config.maxBet) {
             this.bet = amount;
@@ -964,7 +704,6 @@ class SlotMachine {
         return false;
     }
     
-    // Set active lines
     setActiveLines(lines) {
         if (lines >= 1 && lines <= this.config.maxLines) {
             this.activeLines = lines;
@@ -973,17 +712,14 @@ class SlotMachine {
         return false;
     }
     
-    // Get progressive jackpot
     getProgressiveJackpot() {
         return this.progressiveJackpot;
     }
     
-    // Set auto spin
     setAutoSpin(enabled) {
         this.autoSpinEnabled = enabled;
     }
     
-    // Play sound
     playSound(soundType) {
         if (!this.soundEnabled) return;
         
@@ -994,38 +730,18 @@ class SlotMachine {
         }
     }
     
-    // Cleanup
-    destroy() {
-        if (this.houseEdgeProtectionInterval) {
-            clearInterval(this.houseEdgeProtectionInterval);
-        }
-        if (this.rtpDecayInterval) {
-            clearInterval(this.rtpDecayInterval);
-        }
-    }
-    
-    // Get game statistics
     getStatistics() {
         return {
             totalSpins: this.totalSpins,
             balance: this.balance,
             lastWin: this.lastWin,
             consecutiveLosses: this.consecutiveLosses,
-            progressiveJackpot: this.progressiveJackpot,
             currentRTP: this.currentRTP,
             targetRTP: this.targetRTP,
-            houseEdge: 100 - this.currentRTP,
             totalBetAmount: this.totalBetAmount,
             totalWinAmount: this.totalWinAmount,
             spinsSinceLastWin: this.spinsSinceLastWin,
-            forceLossSpins: this.forceLossSpins,
-            emergencyMode: this.emergencyMode,
-            sessionStats: {
-                spins: this.sessionSpins,
-                bets: this.sessionBets,
-                wins: this.sessionWins,
-                rtp: this.sessionBets > 0 ? (this.sessionWins / this.sessionBets) * 100 : 0
-            }
+            forcedNextResult: this.forcedNextResult
         };
     }
 }
